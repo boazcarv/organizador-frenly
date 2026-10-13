@@ -7,12 +7,18 @@ import { startOfDay } from "date-fns";
  * these are only labels and static option lists.
  */
 
+/**
+ * Team filters.
+ *
+ * Presence ("quem está online agora") is deliberately absent: the app does not
+ * track it, so a filter for it would only ever return an empty list. These cut
+ * the roster by things the workspace actually records.
+ */
 export const teamFilters: { id: string; label: string }[] = [
   { id: "all", label: "Todos" },
-  { id: "online", label: "Online" },
-  { id: "recent", label: "Recentes" },
-  { id: "top", label: "Melhor avaliados" },
-  { id: "now", label: "Online agora" },
+  { id: "withTasks", label: "Com tarefas" },
+  { id: "available", label: "Disponíveis" },
+  { id: "thisWeek", label: "Ativos esta semana" },
 ];
 
 export const timezones = [

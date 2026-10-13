@@ -20,7 +20,7 @@ import { PromoCard } from "@/components/shell/promo-card";
 import { ThemePill } from "@/components/shell/theme-toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useTasks } from "@/lib/queries";
+import { useLogout, useTasks } from "@/lib/queries";
 import { useUiStore } from "@/store/ui";
 
 export function Logo({ collapsed }: { collapsed?: boolean }) {
@@ -86,6 +86,7 @@ export function SidebarContent({
 }) {
   // Live badge: how many cards are waiting in Review.
   const { data: tasks } = useTasks();
+  const { mutate: logout } = useLogout();
   const reviewCount = tasks?.filter((task) => task.status === "review").length ?? 0;
   const upgradeNotice = () =>
     toast("Upgrade disponível", {
@@ -145,7 +146,7 @@ export function SidebarContent({
               icon={LogOut}
               onSelect={() => {
                 onNavigate?.();
-                toast("Até já", { description: "Sessão encerrada no ambiente de demonstração." });
+                logout();
               }}
             />
           </div>

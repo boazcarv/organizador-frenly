@@ -83,10 +83,14 @@ export function MemberDrawer() {
                   </SheetDescription>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     <StatusChip status={member.status} />
-                    <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-[10.5px] font-medium text-ink-soft">
-                      <Star className="size-3 text-warn" aria-hidden />
-                      {member.rating.toFixed(1)}
-                    </span>
+                    {/* Rating only exists once someone gives one; a permanent
+                        0.0 star would just be noise. */}
+                    {member.rating > 0 ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-[10.5px] font-medium text-ink-soft">
+                        <Star className="size-3 text-warn" aria-hidden />
+                        {member.rating.toFixed(1)}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -100,9 +104,10 @@ export function MemberDrawer() {
               <div className="grid grid-cols-3 gap-2">
                 <Metric label="Tarefas" value={member.tasks} />
                 <Metric label="Horas" value={member.hours} format="hours" />
-                <Metric label="Eficiência" value={member.efficiency} format="percent" />
+                <Metric label="Concluídas" value={member.efficiency} format="percent" />
               </div>
 
+              {member.activities.length > 0 ? (
               <section className="mt-6">
                 <h3 className="text-[13px] font-semibold text-ink">Atividade recente</h3>
                 <ol className="mt-3 space-y-0">
@@ -136,7 +141,9 @@ export function MemberDrawer() {
                   })}
                 </ol>
               </section>
+              ) : null}
 
+              {member.skills.length > 0 ? (
               <section className="mt-6">
                 <h3 className="text-[13px] font-semibold text-ink">Especialidades</h3>
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -150,6 +157,7 @@ export function MemberDrawer() {
                   ))}
                 </div>
               </section>
+              ) : null}
             </div>
 
             <footer className="flex items-center gap-2 border-t border-line px-6 py-4">

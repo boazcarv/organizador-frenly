@@ -102,7 +102,9 @@ export function Column({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() =>
-                  toast("Arquivamento desativado na demonstração", { description: `A coluna ${title} mantém ${tasks.length} cartões.` })
+                  toast("Arquivamento ainda não disponível", {
+                    description: `A coluna ${title} mantém ${tasks.length} cartões. Mova ou exclua cada tarefa.`,
+                  })
                 }
                 className="gap-2.5 rounded-[10px] px-2 py-1.5 text-[13px]"
               >

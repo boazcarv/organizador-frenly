@@ -1,8 +1,9 @@
 import { chromium } from "playwright";
+import { sessionCookie } from "./session.mjs";
 
 const BASE = "http://localhost:3000";
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR", timezoneId: "America/Sao_Paulo" });
+const ctx = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] }, viewport: { width: 1440, height: 900 }, locale: "pt-BR", timezoneId: "America/Sao_Paulo" });
 const page = await ctx.newPage();
 const problems = [];
 page.on("pageerror", (e) => problems.push("pageerror: " + e.message));

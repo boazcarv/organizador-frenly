@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { sessionCookie } from "./session.mjs";
 import { mkdir } from "node:fs/promises";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
@@ -6,7 +7,7 @@ const OUT = process.env.OUT_DIR ?? "/home/user/qa";
 await mkdir(OUT, { recursive: true });
 
 const browser = await chromium.launch();
-const context = await browser.newContext({
+const context = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] },
   viewport: { width: 1440, height: 900 },
   locale: "pt-BR",
   timezoneId: "America/Sao_Paulo",
@@ -113,7 +114,7 @@ await page.waitForTimeout(1600);
 await shot("16-analytics-week");
 
 // 8. reduced motion pass
-const rmContext = await browser.newContext({
+const rmContext = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] },
   viewport: { width: 1440, height: 900 },
   reducedMotion: "reduce",
   locale: "pt-BR",
@@ -125,7 +126,7 @@ await rmPage.screenshot({ path: `${OUT}/17-reduced-motion.png` });
 
 // 9. horizontal overflow check at 1280 and 390
 for (const width of [1280, 390]) {
-  const ctx = await browser.newContext({ viewport: { width, height: 900 }, locale: "pt-BR" });
+  const ctx = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] }, viewport: { width, height: 900 }, locale: "pt-BR" });
   const p = await ctx.newPage();
   for (const route of ["dashboard", "team", "calendar", "analytics", "tasks", "settings"]) {
     await p.goto(`${BASE}/${route}`, { waitUntil: "networkidle" });

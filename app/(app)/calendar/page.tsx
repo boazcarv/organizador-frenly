@@ -6,6 +6,7 @@ import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Agenda, UpcomingList } from "@/components/calendar/agenda";
+import { NewEventDialog } from "@/components/calendar/new-event-dialog";
 import { MonthGrid, monthDays } from "@/components/calendar/month-grid";
 import { PageHeader } from "@/components/ui/page-header";
 import { Panel } from "@/components/ui/panel";
@@ -19,6 +20,7 @@ export default function CalendarPage() {
   const { data: agenda } = useAgenda();
   const { data: upcoming } = useUpcoming();
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
 
   const days = useMemo(() => monthDays(month), [month]);
 
@@ -65,7 +67,7 @@ export default function CalendarPage() {
         </div>
         <button
           type="button"
-          onClick={() => toast("Novo evento", { description: "Escolha um horário livre no calendário." })}
+          onClick={() => setEventDialogOpen(true)}
           className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-strong)]"
         >
           <CalendarPlus className="size-4" aria-hidden />
@@ -121,6 +123,8 @@ export default function CalendarPage() {
           {upcoming ? <UpcomingList events={upcoming} /> : <Skeleton className="h-[300px] rounded-[20px]" />}
         </div>
       </div>
+
+      <NewEventDialog open={eventDialogOpen} onOpenChange={setEventDialogOpen} />
     </div>
   );
 }

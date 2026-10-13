@@ -74,7 +74,10 @@ export const useTrackerStore = create<TrackerState>()(
       baseSeconds: TRACKER_SEED_SECONDS,
       sessionBase: null,
       startedAtMs: null,
-      projectId: "prj-aurora",
+      // Empty until a real project exists: the old default pointed at a
+      // demonstration project that no longer exists, so stopping the clock
+      // would try to log time against a project the server has never heard of.
+      projectId: "",
       sessions: [],
 
       start: () => {

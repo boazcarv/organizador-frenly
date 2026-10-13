@@ -99,6 +99,8 @@ export interface CalEvent {
 export interface TimeEntry {
   id: string;
   projectId: string;
+  /** Who tracked the session — null for entries recorded before accounts existed. */
+  userId: string | null;
   seconds: number;
   startedAt: string;
 }
@@ -157,6 +159,60 @@ export interface CurrentUser {
   timezone: string;
   bio: string;
   color: PastelKey;
+}
+
+/** Account as the API exposes it: never carries the password hash. */
+export interface Account {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  company: string;
+  plan: string;
+  timezone: string;
+  bio: string;
+  color: PastelKey;
+  isOwner: boolean;
+  createdAt: string;
+}
+
+/** The window the analytics screen is currently looking at. */
+export type AnalyticsPeriod = "today" | "week" | "month";
+
+/**
+ * Payloads shared by the API routes and the client.
+ *
+ * They live here, next to the domain models, so a change to the shape of a
+ * response is a type error on both sides of the wire instead of a runtime
+ * surprise in the browser.
+ */
+
+export interface DashboardStats {
+  total: number;
+  active: number;
+  waiting: number;
+  pending: number;
+  completed: number;
+  inProgress: number;
+  completionRate: number;
+}
+
+export interface DashboardSummary {
+  stats: DashboardStats;
+  productivity: ProductivityPeriod[];
+  reminders: Reminder[];
+  projects: Project[];
+  members: Member[];
+  todayEvents: CalEvent[];
+  weekHours: number;
+  todaySeconds: number;
+}
+
+export interface AnalyticsPayload {
+  metrics: Metric[];
+  throughput: ThroughputPoint[];
+  donut: DonutSlice[];
+  workload: WorkloadPeriod;
 }
 
 export interface Reminder {

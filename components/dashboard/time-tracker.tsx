@@ -64,14 +64,25 @@ function Clock({ seconds, className }: { seconds: number; className?: string }) 
   );
 }
 
+/**
+ * The project the clock will log against.
+ *
+ * The store may hold an id that no longer exists (the project was deleted, or
+ * the value came from an older build), so the selection is always resolved
+ * against the real list before it is used.
+ */
+function useActiveProject() {
+  const projectId = useTrackerStore((state) => state.projectId);
+  const { data: projects = [] } = useProjects();
+  return projects.find((item) => item.id === projectId) ?? projects[0] ?? null;
+}
+
 function TrackerControls({ compact = false }: { compact?: boolean }) {
   const running = useTrackerStore((state) => state.running);
   const toggle = useTrackerStore((state) => state.toggle);
   const stop = useTrackerStore((state) => state.stop);
-  const projectId = useTrackerStore((state) => state.projectId);
   const logEntry = useLogTimeEntry();
-  const { data: projects = [] } = useProjects();
-  const project = projects.find((item) => item.id === projectId);
+  const project = useActiveProject();
 
   /**
    * Stopping writes a real time entry: the tracker clears immediately for a
@@ -79,13 +90,20 @@ function TrackerControls({ compact = false }: { compact?: boolean }) {
    */
   const handleStop = () => {
     const tracked = useTrackerStore.getState().loggableSeconds();
-    if (tracked <= 0) {
-      stop();
+    stop();
+    if (tracked <= 0) return;
+
+    // Hours need somewhere to land. Better to say so than to fire a request
+    // that can only fail.
+    if (!project) {
+      toast.error("Horas não registradas", {
+        description: "Crie um projeto primeiro — cada sessão é lançada em um projeto.",
+      });
       return;
     }
-    stop();
+
     logEntry.mutate(
-      { projectId, seconds: tracked, startedAt: new Date(Date.now() - tracked * 1000).toISOString() },
+      { projectId: project.id, seconds: tracked, startedAt: new Date(Date.now() - tracked * 1000).toISOString() },
       {
         onSuccess: () =>
           toast.success("Sessão registrada", {
@@ -106,10 +124,12 @@ function TrackerControls({ compact = false }: { compact?: boolean }) {
           <motion.button
             type="button"
             onClick={toggle}
+            disabled={!running && !project}
             whileTap={{ scale: 0.93 }}
             transition={SPRING_GESTURE}
             aria-label={running ? "Pausar cronômetro" : "Iniciar cronômetro"}
             aria-pressed={running}
+            title={!running && !project ? "Crie um projeto para registrar horas" : undefined}
             className={cn(
               "inline-flex items-center justify-center rounded-full bg-white text-[var(--deep)] shadow-[0_10px_24px_-12px_rgba(0,0,0,.6)] transition-transform duration-200 hover:scale-[1.04]",
               buttonSize,
@@ -148,10 +168,9 @@ function TrackerControls({ compact = false }: { compact?: boolean }) {
 }
 
 function ProjectPicker({ compact = false }: { compact?: boolean }) {
-  const projectId = useTrackerStore((state) => state.projectId);
   const setProject = useTrackerStore((state) => state.setProject);
   const { data: projects = [] } = useProjects();
-  const project = projects.find((item) => item.id === projectId) ?? projects[0];
+  const project = useActiveProject();
 
   if (!project) {
     return (

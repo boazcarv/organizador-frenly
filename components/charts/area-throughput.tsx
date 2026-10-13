@@ -56,6 +56,12 @@ export function AreaThroughput({ data, title = "Throughput" }: { data: Throughpu
   const total = data.reduce((sum, point) => sum + point.current, 0);
   const average = total / (data.length || 1);
 
+  // The scale follows the data: a fixed 0..12 axis reads as "nothing happened"
+  // on a busy week and clips anything above a dozen deliveries.
+  const peak = Math.max(1, ...data.flatMap((point) => [point.current, point.previous]));
+  const step = Math.max(1, Math.ceil(peak / 4));
+  const yTicks = Array.from({ length: 5 }, (_, index) => index * step);
+
   return (
     <Panel className="flex h-full flex-col" hoverable={false}>
       <PanelHeader
@@ -112,8 +118,8 @@ export function AreaThroughput({ data, title = "Throughput" }: { data: Throughpu
               minTickGap={12}
             />
             <YAxis
-              domain={[0, 12]}
-              ticks={[0, 3, 6, 9, 12]}
+              domain={[0, step * 4]}
+              ticks={yTicks}
               axisLine={false}
               tickLine={false}
               tick={{ fill: "var(--ink-faint)", fontSize: 11 }}

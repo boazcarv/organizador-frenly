@@ -2,7 +2,6 @@
 
 import { ChevronsUpDown, LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
-import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { InitialsAvatar } from "@/components/ui/initials-avatar";
-import { useProfile } from "@/lib/queries";
+import { useLogout, useProfile } from "@/lib/queries";
 
 const fallbackName = "Frenly";
 const fallbackPlan = "Carregando…";
 
 export function UserChip({ compact = false }: { compact?: boolean }) {
   const { data: profile } = useProfile();
+  const { mutate: logout } = useLogout();
   const user = {
     name: profile?.name ?? fallbackName,
     plan: profile?.plan ?? fallbackPlan,
@@ -66,7 +66,7 @@ export function UserChip({ compact = false }: { compact?: boolean }) {
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-line" />
         <DropdownMenuItem
-          onSelect={() => toast("Sessão encerrada", { description: "Este é um ambiente de demonstração." })}
+          onSelect={() => logout()}
           className="gap-2.5 rounded-[10px] px-2 py-1.5 text-[13px] text-danger data-[highlighted]:bg-danger-soft data-[highlighted]:text-danger"
         >
           <LogOut className="size-4" aria-hidden />

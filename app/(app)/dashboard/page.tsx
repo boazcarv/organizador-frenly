@@ -18,7 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatLongDate } from "@/lib/format";
-import { useDashboard } from "@/lib/queries";
+import { useDashboard, useProfile } from "@/lib/queries";
 import { useUiStore } from "@/store/ui";
 
 function greetingFor(hour: number) {
@@ -65,6 +65,7 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   const { data, isPending } = useDashboard();
+  const { data: profile } = useProfile();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
@@ -74,6 +75,7 @@ export default function DashboardPage() {
   if (isPending || !data) return <DashboardSkeleton />;
 
   const { stats, projects, members, reminders, productivity } = data;
+  const firstName = profile?.name.trim().split(" ")[0];
 
   const byStatus = (status: string) => projects.filter((project) => project.status === status);
 
@@ -82,7 +84,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Bom trabalho, Marina"
+        title={firstName ? `Bom trabalho, ${firstName}` : "Bom trabalho"}
         subtitle={`${greetingFor(hour)}! Aqui está o pulso do time em ${formatLongDate(new Date())}.`}
       >
         <Button

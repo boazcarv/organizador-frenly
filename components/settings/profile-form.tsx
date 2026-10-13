@@ -91,7 +91,9 @@ export function ProfileForm() {
           </p>
           <button
             type="button"
-            onClick={() => toast("Upload desativado na demonstração")}
+            onClick={() => toast("Upload de foto ainda não disponível", {
+              description: "Os avatares usam suas iniciais — funcionam sem nenhum serviço externo.",
+            })}
             className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-full border border-line px-3 text-[12px] font-medium text-ink-soft transition-colors duration-200 hover:bg-surface-muted hover:text-ink"
           >
             <Camera className="size-3.5" aria-hidden />

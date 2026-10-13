@@ -7,8 +7,16 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
 } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { api, type ApiError } from "./api";
-import type { NotificationSetting, Project, Task, TaskStatus } from "./types";
+import type {
+  Account,
+  AnalyticsPeriod,
+  NotificationSetting,
+  Project,
+  Task,
+  TaskStatus,
+} from "./types";
 import { useHydrated } from "./use-hydrated";
 
 export const queryKeys = {
@@ -23,6 +31,8 @@ export const queryKeys = {
   analytics: ["analytics"] as const,
   notifications: ["notifications"] as const,
   profile: ["profile"] as const,
+  accounts: ["accounts"] as const,
+  analyticsFor: (period: AnalyticsPeriod) => ["analytics", period] as const,
 };
 
 /**
@@ -88,8 +98,15 @@ export function useDashboard() {
   return useApiQuery({ queryKey: queryKeys.dashboard, queryFn: api.getDashboard });
 }
 
-export function useAnalytics() {
-  return useApiQuery({ queryKey: queryKeys.analytics, queryFn: api.getAnalytics });
+export function useAnalytics(period: AnalyticsPeriod) {
+  return useApiQuery({
+    queryKey: queryKeys.analyticsFor(period),
+    queryFn: () => api.getAnalytics(period),
+  });
+}
+
+export function useAccounts() {
+  return useApiQuery({ queryKey: queryKeys.accounts, queryFn: api.listAccounts });
 }
 
 export function useNotifications() {
@@ -139,6 +156,7 @@ export function useLogTimeEntry() {
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: queryKeys.dashboard });
       void client.invalidateQueries({ queryKey: queryKeys.analytics });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
     },
   });
 }
@@ -152,6 +170,20 @@ export function useMoveTask() {
       if (task) client.setQueryData<Task[]>(queryKeys.tasks, (current) =>
         current?.map((item) => (item.id === task.id ? task : item)),
       );
+    },
+  });
+}
+
+/** Adds an event to the calendar and refreshes everything that lists events. */
+export function useCreateEvent() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.createEvent,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.events });
+      void client.invalidateQueries({ queryKey: queryKeys.agenda });
+      void client.invalidateQueries({ queryKey: queryKeys.upcoming });
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard });
     },
   });
 }
@@ -178,5 +210,74 @@ export function useSaveProfile() {
   return useMutation({
     mutationFn: api.saveProfile,
     onSuccess: (profile) => client.setQueryData(queryKeys.profile, profile),
+  });
+}
+
+/* -------------------------------- accounts -------------------------------- */
+
+/** Creates a login for someone else. Owner only, enforced on the server too. */
+export function useCreateAccount() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.createAccount,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.accounts });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
+    },
+  });
+}
+
+export function useUpdateAccount() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Parameters<typeof api.updateAccount>[1] }) =>
+      api.updateAccount(id, patch),
+    onSuccess: (account: Account) => {
+      void client.invalidateQueries({ queryKey: queryKeys.accounts });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
+      void client.invalidateQueries({ queryKey: queryKeys.profile });
+      // Editing yourself changes the name shown in the shell.
+      if (account) client.setQueryData(queryKeys.profile, account);
+    },
+  });
+}
+
+export function useDeleteAccount() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.deleteAccount,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.accounts });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
+    },
+  });
+}
+
+/* ---------------------------------- auth ---------------------------------- */
+
+export function useSetupState() {
+  return useQuery({
+    queryKey: ["setup-state"],
+    queryFn: api.setupState,
+    staleTime: 0,
+    retry: false,
+  });
+}
+
+/**
+ * Signs out and clears the cache.
+ *
+ * `clear()` matters: without it the next person to log in on this browser would
+ * see the previous session's data for a frame before the refetch.
+ */
+export function useLogout() {
+  const client = useQueryClient();
+  const router = useRouter();
+  return useMutation({
+    mutationFn: api.logout,
+    onSettled: () => {
+      client.clear();
+      router.replace("/login");
+    },
   });
 }

@@ -1,7 +1,8 @@
 import { chromium } from "playwright";
+import { sessionCookie } from "./session.mjs";
 const BASE = "http://localhost:3000";
 const browser = await chromium.launch();
-const context = await browser.newContext({
+const context = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] },
   viewport: { width: 1440, height: 900 },
   locale: "pt-BR",
   timezoneId: "America/Sao_Paulo",
