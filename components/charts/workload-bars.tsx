@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Timer } from "lucide-react";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { formatHours } from "@/lib/format";
 import type { WorkloadPeriod } from "@/lib/types";
@@ -23,7 +24,11 @@ export function WorkloadBars({
   data: WorkloadPeriod;
   onSeeAll?: () => void;
 }) {
-  const max = Math.max(...data.rows.flatMap((row) => row.values));
+  // `Math.max()` of nothing is -Infinity, which would turn every bar width into
+  // NaN. A workspace with no tracked time is the normal first-run state, not an
+  // edge case.
+  const max = Math.max(1, ...data.rows.flatMap((row) => row.values));
+  const hasTrackedTime = data.rows.some((row) => row.total > 0);
 
   return (
     <Panel className="flex h-full flex-col" hoverable={false}>
@@ -43,6 +48,14 @@ export function WorkloadBars({
       />
 
       <div className="mt-5 space-y-3.5">
+        {!hasTrackedTime ? (
+          <EmptyState
+            icon={Timer}
+            title="Nenhuma hora registrada"
+            description="Use o cronômetro no dashboard enquanto trabalha: as horas aparecem aqui por pessoa e por semana."
+          />
+        ) : null}
+
         {data.rows.map((row, rowIndex) => (
           <div key={row.id} className="group/row">
             <div className="flex items-center justify-between text-[12px]">
@@ -58,8 +71,8 @@ export function WorkloadBars({
                     "block h-full rounded-full transition-transform duration-200 group-hover/row:scale-y-110",
                   )}
                   style={{
-                    width: `${(value / max) * 100 * (1 / row.values.length) * 4}%`,
-                    backgroundColor: ramp[valueIndex],
+                    width: `${(value / max) * 100}%`,
+                    backgroundColor: ramp[valueIndex % ramp.length],
                   }}
                   initial={{ scaleX: 0, opacity: 0.5 }}
                   animate={{ scaleX: 1, opacity: 1 }}
@@ -79,7 +92,11 @@ export function WorkloadBars({
       <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-line-soft pt-3.5">
         {data.labels.map((label, index) => (
           <span key={label} className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-soft">
-            <span aria-hidden className="size-2.5 rounded-full" style={{ backgroundColor: ramp[index] }} />
+            <span
+              aria-hidden
+              className="size-2.5 rounded-full"
+              style={{ backgroundColor: ramp[index % ramp.length] }}
+            />
             {label}
           </span>
         ))}

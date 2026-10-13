@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { sessionCookie } from "./session.mjs";
 import { mkdir } from "node:fs/promises";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
@@ -15,7 +16,7 @@ const browser = await chromium.launch();
 const problems = [];
 
 for (const viewport of viewports) {
-  const context = await browser.newContext({
+  const context = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] },
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
     locale: "pt-BR",

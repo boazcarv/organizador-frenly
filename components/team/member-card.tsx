@@ -57,7 +57,7 @@ export function MemberCard({ member, onOpen }: { member: Member; onOpen: () => v
 
       <div className="mt-4">
         <div className="flex items-center justify-between text-[11.5px]">
-          <span className="text-ink-soft">Progresso semanal</span>
+          <span className="text-ink-soft">Tarefas concluídas</span>
           <span className="font-semibold tabular-nums text-ink">{member.weeklyProgress}%</span>
         </div>
         <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
@@ -86,7 +86,7 @@ export function MemberCard({ member, onOpen }: { member: Member; onOpen: () => v
           type="button"
           onClick={() =>
             toast(`Mensagem para ${member.name.split(" ")[0]}`, {
-              description: "O chat do time abre em breve.",
+              description: "O chat ainda não faz parte do produto — combine por onde preferir.",
             })
           }
           className={cn(

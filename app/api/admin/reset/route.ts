@@ -1,19 +1,20 @@
-import { resetDatabase } from "@/lib/server/db";
-import { ok, serverError } from "@/lib/server/http";
+import { getSessionUser } from "@/lib/server/auth";
+import { forbidden, ok, serverError, unauthorized } from "@/lib/server/http";
+import { resetWorkspace } from "@/lib/server/repository";
 
 /**
- * Restores the workspace to its seeded state. Handy for demos and for QA runs
- * that need a deterministic starting point — the UI never calls it.
+ * Empties the workspace (projects, tasks, events, tracked time) while keeping
+ * every account. Owner only: it used to be an open POST, which meant anyone who
+ * found the URL could wipe the data.
  */
 export async function POST() {
   try {
-    const database = await resetDatabase();
-    return ok({
-      reset: true,
-      projects: database.projects.length,
-      tasks: database.tasks.length,
-      timeEntries: database.timeEntries.length,
-    });
+    const user = await getSessionUser();
+    if (!user) return unauthorized();
+    if (!user.isOwner) return forbidden("Apenas o dono do workspace pode zerar os dados");
+
+    await resetWorkspace();
+    return ok({ reset: true });
   } catch (error) {
     return serverError(error);
   }

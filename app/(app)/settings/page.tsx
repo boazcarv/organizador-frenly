@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Bell, Palette, UserRound } from "lucide-react";
+import { Bell, Palette, ShieldCheck, UserRound } from "lucide-react";
 import { useState } from "react";
+import { AccountsPanel } from "@/components/settings/accounts-panel";
 import { AppearancePicker } from "@/components/settings/appearance-picker";
 import { NotificationList } from "@/components/settings/notification-list";
 import { ProfileForm } from "@/components/settings/profile-form";
@@ -11,12 +12,13 @@ import { Panel } from "@/components/ui/panel";
 import { SPRING_GESTURE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-type Section = "profile" | "notifications" | "appearance";
+type Section = "profile" | "notifications" | "appearance" | "access";
 
 const sections: { id: Section; label: string; hint: string; icon: typeof UserRound }[] = [
   { id: "profile", label: "Perfil", hint: "Nome, contato e fuso", icon: UserRound },
   { id: "notifications", label: "Notificações", hint: "O que chega e quando", icon: Bell },
   { id: "appearance", label: "Aparência", hint: "Cor de destaque e tema", icon: Palette },
+  { id: "access", label: "Acessos", hint: "Quem entra e com qual senha", icon: ShieldCheck },
 ];
 
 export default function SettingsPage() {
@@ -88,6 +90,18 @@ export default function SettingsPage() {
                 />
                 <div className="mt-5">
                   <NotificationList />
+                </div>
+              </>
+            ) : null}
+
+            {section === "access" ? (
+              <>
+                <SectionHeading
+                  title="Acessos"
+                  description="As contas que conseguem entrar neste workspace. Não há cadastro público: todo acesso nasce aqui."
+                />
+                <div className="mt-5">
+                  <AccountsPanel />
                 </div>
               </>
             ) : null}

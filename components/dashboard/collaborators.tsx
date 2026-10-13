@@ -36,7 +36,12 @@ export function Collaborators({ members, onOpenMember }: { members: Member[]; on
   const role = useWatch({ control: form.control, name: "role" });
 
   const onSubmit = form.handleSubmit((values) => {
-    toast.success("Convite enviado", { description: `${values.email} entrou na fila como ${values.role}.` });
+    // No mail is sent: there is no transactional e-mail configured, and
+    // pretending otherwise would leave someone waiting for a link. Access is
+    // created for real in Settings → Acessos.
+    toast("Acesso é criado em Settings", {
+      description: `Vá em Settings → Acessos e crie o login de ${values.email}.`,
+    });
     form.reset();
     setOpen(false);
   });
@@ -99,7 +104,7 @@ export function Collaborators({ members, onOpenMember }: { members: Member[]; on
               Adicionar colaborador
             </DialogTitle>
             <DialogDescription className="text-[12.5px] text-ink-soft">
-              Convide alguém para o workspace. O acesso pode ser ajustado depois.
+              O acesso é criado por você em Settings → Acessos; nenhum e-mail é enviado.
             </DialogDescription>
           </DialogHeader>
 

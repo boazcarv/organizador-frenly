@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { CalendarRange, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EASE_OUT_QUINT } from "@/lib/motion";
@@ -42,6 +43,26 @@ export function ProjectsBar({
     setPlaying(false);
     setIndex((current) => (current + step + periods.length) % periods.length);
   };
+
+  // Defensive: an empty list would make `period` undefined and take the whole
+  // dashboard down with it on `period.bars`.
+  if (!period) {
+    return (
+      <Panel className="flex h-full flex-col">
+        <PanelHeader
+          title="Produtividade do projeto"
+          hint="Entregas concluídas por semana · comparação com o período anterior"
+        />
+        <div className="mt-5">
+          <EmptyState
+            icon={CalendarRange}
+            title="Ainda sem histórico"
+            description="Assim que você concluir tarefas, as entregas por semana aparecem aqui."
+          />
+        </div>
+      </Panel>
+    );
+  }
 
   return (
     <Panel className="flex h-full flex-col">

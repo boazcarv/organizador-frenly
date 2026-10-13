@@ -1,12 +1,15 @@
-import { badRequest, notFound, ok, readJson, serverError } from "@/lib/server/http";
+import { getSessionUser } from "@/lib/server/auth";
+import { badRequest, notFound, ok, readJson, serverError, unauthorized } from "@/lib/server/http";
 import { deleteProject, getProject, updateProject } from "@/lib/server/repository";
 import type { Project } from "@/lib/types";
-
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
+    const user = await getSessionUser();
+    if (!user) return unauthorized();
+
     const { id } = await params;
     const project = await getProject(id);
     return project ? ok(project) : notFound("Projeto não encontrado");
@@ -17,6 +20,9 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
+    const user = await getSessionUser();
+    if (!user) return unauthorized();
+
     const { id } = await params;
     const body = await readJson<Project>(request);
     if (body.progress !== undefined && (body.progress < 0 || body.progress > 100)) {
@@ -31,6 +37,9 @@ export async function PATCH(request: Request, { params }: Params) {
 
 export async function DELETE(_request: Request, { params }: Params) {
   try {
+    const user = await getSessionUser();
+    if (!user) return unauthorized();
+
     const { id } = await params;
     const project = await getProject(id);
     if (!project) return notFound("Projeto não encontrado");

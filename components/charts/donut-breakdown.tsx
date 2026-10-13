@@ -1,8 +1,10 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { ChartPie } from "lucide-react";
 import { useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { formatHours } from "@/lib/format";
 import type { DonutSlice } from "@/lib/types";
@@ -32,6 +34,23 @@ export function DonutBreakdown({ slices }: { slices: DonutSlice[] }) {
       rotation: (startHours / total) * 360,
     };
   });
+
+  // No hours in the window: an empty ring with a zero in the middle says less
+  // than simply stating it.
+  if (slices.length === 0) {
+    return (
+      <Panel className="flex h-full flex-col" hoverable={false}>
+        <PanelHeader title="Distribuição de tempo" hint="Horas registradas por projeto" />
+        <div className="mt-5">
+          <EmptyState
+            icon={ChartPie}
+            title="Nada registrado neste período"
+            description="As sessões do cronômetro entram aqui, agrupadas por projeto."
+          />
+        </div>
+      </Panel>
+    );
+  }
 
   return (
     <Panel className="flex h-full flex-col" hoverable={false}>

@@ -1,11 +1,12 @@
 import { chromium } from "playwright";
+import { sessionCookie } from "./session.mjs";
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const routes = ["dashboard", "team", "calendar", "analytics", "tasks", "settings"];
 const browser = await chromium.launch();
 const problems = [];
 
 // 1024px: sidebar rail stays, content compresses
-const ctx1024 = await browser.newContext({ viewport: { width: 1024, height: 800 }, locale: "pt-BR" });
+const ctx1024 = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] }, viewport: { width: 1024, height: 800 }, locale: "pt-BR" });
 const p1024 = await ctx1024.newPage();
 for (const route of routes) {
   await p1024.goto(`${BASE}/${route}`, { waitUntil: "networkidle" });
@@ -19,7 +20,7 @@ for (const route of routes) {
 await ctx1024.close();
 
 // dark mode, every route
-const ctxDark = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR", colorScheme: "dark" });
+const ctxDark = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] }, viewport: { width: 1440, height: 900 }, locale: "pt-BR", colorScheme: "dark" });
 const pDark = await ctxDark.newPage();
 pDark.on("pageerror", (e) => problems.push(`dark pageerror: ${e.message}`));
 for (const route of routes) {
@@ -30,7 +31,7 @@ for (const route of routes) {
 await ctxDark.close();
 
 // keyboard pass: tab through the dashboard and check focus is visible
-const ctxKeys = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
+const ctxKeys = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] }, viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
 const pKeys = await ctxKeys.newPage();
 await pKeys.goto(`${BASE}/dashboard`, { waitUntil: "networkidle" });
 await pKeys.waitForTimeout(1000);

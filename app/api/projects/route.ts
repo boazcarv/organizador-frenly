@@ -1,7 +1,6 @@
-import { badRequest, ok, serverError } from "@/lib/server/http";
+import { getSessionUser } from "@/lib/server/auth";
+import { badRequest, ok, readJson, serverError, unauthorized } from "@/lib/server/http";
 import { createProject, listProjects, type CreateProjectInput } from "@/lib/server/repository";
-import { readJson } from "@/lib/server/http";
-
 
 const statuses = ["active", "waiting", "pending", "completed"];
 
@@ -16,6 +15,8 @@ function validate(input: Partial<CreateProjectInput>): string | null {
 
 export async function GET() {
   try {
+    const user = await getSessionUser();
+    if (!user) return unauthorized();
     return ok(await listProjects());
   } catch (error) {
     return serverError(error);
@@ -24,6 +25,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const user = await getSessionUser();
+    if (!user) return unauthorized();
+
     const body = await readJson<CreateProjectInput>(request);
     const problem = validate(body);
     if (problem) return badRequest(problem);

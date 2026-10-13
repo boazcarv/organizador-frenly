@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
+import { sessionCookie } from "./session.mjs";
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR", timezoneId: "America/Sao_Paulo", isMobile: true, hasTouch: true });
+const ctx = await browser.newContext({ storageState: { cookies: [sessionCookie()], origins: [] }, viewport: { width: 390, height: 844 }, locale: "pt-BR", timezoneId: "America/Sao_Paulo", isMobile: true, hasTouch: true });
 const page = await ctx.newPage();
 const problems = [];
 page.on("pageerror", (e) => problems.push(e.message));

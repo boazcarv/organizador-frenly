@@ -9,10 +9,13 @@ import { TeamFilters } from "@/components/team/filters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { teamFilters as seedFilters } from "@/lib/constants";
+import { APP_TODAY, teamFilters as seedFilters } from "@/lib/constants";
 import { useMembers } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/ui";
+
+/** Window that counts as "esta semana" for the activity filter. */
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
 export default function TeamPage() {
   const { data: members, isPending } = useMembers();
@@ -22,14 +25,14 @@ export default function TeamPage() {
   const filtered = useMemo(() => {
     if (!members) return [];
     switch (filter) {
-      case "online":
-        return members.filter((member) => member.online);
-      case "recent":
-        return members.filter((member) => member.recent);
-      case "top":
-        return members.filter((member) => member.rating >= 4.7);
-      case "now":
-        return members.filter((member) => member.online && (member.status === "active" || member.status === "busy"));
+      case "withTasks":
+        return members.filter((member) => member.tasks > 0);
+      case "available":
+        return members.filter((member) => member.tasks === 0);
+      case "thisWeek":
+        return members.filter(
+          (member) => APP_TODAY.getTime() - new Date(member.lastActive).getTime() <= SEVEN_DAYS,
+        );
       default:
         return members;
     }
@@ -38,12 +41,12 @@ export default function TeamPage() {
   const counts = useMemo(
     () => ({
       all: members?.length ?? 0,
-      online: members?.filter((member) => member.online).length ?? 0,
-      recent: members?.filter((member) => member.recent).length ?? 0,
-      top: members?.filter((member) => member.rating >= 4.7).length ?? 0,
-      now:
-        members?.filter((member) => member.online && (member.status === "active" || member.status === "busy")).length ??
-        0,
+      withTasks: members?.filter((member) => member.tasks > 0).length ?? 0,
+      available: members?.filter((member) => member.tasks === 0).length ?? 0,
+      thisWeek:
+        members?.filter(
+          (member) => APP_TODAY.getTime() - new Date(member.lastActive).getTime() <= SEVEN_DAYS,
+        ).length ?? 0,
     }),
     [members],
   );
@@ -55,13 +58,15 @@ export default function TeamPage() {
         subtitle={
           isPending
             ? "Carregando o time do workspace…"
-            : `${counts.all} pessoas no workspace · ${counts.online} online agora`
+            : `${counts.all} ${counts.all === 1 ? "pessoa" : "pessoas"} no workspace · ${counts.withTasks} com tarefas`
         }
       >
         <button
           type="button"
           onClick={() =>
-            toast("Convidar pessoa", { description: "Cole o e-mail do time para enviar o acesso." })
+            toast("Criar acesso", {
+              description: "Settings → Acessos cria o login. Não há convite por e-mail configurado.",
+            })
           }
           className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-strong)]"
         >

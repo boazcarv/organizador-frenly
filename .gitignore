@@ -40,5 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# runtime database (recreated from lib/mock-data.ts on first request)
-/data/frenly.json
+# local database (PGlite) — recreated on first run when DATABASE_URL is absent
+/data

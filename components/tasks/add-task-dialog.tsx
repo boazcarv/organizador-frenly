@@ -139,6 +139,15 @@ export function AddTaskDialog({
             ) : null}
           </div>
 
+          {/* Without a project the form can only fail validation, so it says
+              why instead of leaving an empty dropdown to puzzle over. */}
+          {projects.length === 0 ? (
+            <p className="rounded-[12px] bg-warn-soft px-3 py-2 text-[12.5px] text-ink-soft">
+              Crie um projeto primeiro: toda tarefa pertence a um projeto. Feche este diálogo e use
+              <span className="font-medium text-ink"> Novo projeto</span> no dashboard.
+            </p>
+          ) : null}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Projeto">
               <Select value={values.projectId ?? ""} onValueChange={(value) => form.setValue("projectId", value)}>
