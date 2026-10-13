@@ -1,0 +1,487 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   FRENLY DESIGN SYSTEM
+   Tokens live here. Everything else (components) only uses these tokens.
+   ========================================================================== */
+
+@theme inline {
+  /* ---------- type ---------- */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Inter, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+
+  /* ---------- surfaces ---------- */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-deep: var(--deep);
+  --color-deep-ring: var(--deep-ring);
+
+  /* ---------- text ---------- */
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+
+  /* ---------- accent (user-swappable) ---------- */
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-tint: var(--accent-tint);
+  --color-on-accent: var(--on-accent);
+
+  /* ---------- semantic ---------- */
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-success: var(--accent-soft);
+
+  /* ---------- data palette (desaturated pastels) ---------- */
+  --color-pastel-peach: #f6d9c8;
+  --color-pastel-blue: #cfe3f5;
+  --color-pastel-sage: #d8eadf;
+  --color-pastel-sand: #efe3cb;
+  --color-pastel-lilac: #e0d6f5;
+
+  /* ---------- radii ---------- */
+  --radius-sm: 10px;
+  --radius-md: 13px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-3xl: 34px;
+
+  /* ---------- shadows ---------- */
+  --shadow-card: 0 1px 2px rgba(10, 21, 18, 0.04), 0 1px 1px rgba(10, 21, 18, 0.02);
+  --shadow-card-hover: 0 14px 32px -16px rgba(10, 21, 18, 0.18),
+    0 2px 6px rgba(10, 21, 18, 0.04);
+  --shadow-pop: 0 28px 70px -24px rgba(10, 21, 18, 0.32),
+    0 4px 12px rgba(10, 21, 18, 0.06);
+  --shadow-window: 0 60px 120px -60px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-lift: 0 22px 44px -18px rgba(6, 30, 20, 0.35);
+
+  /* ---------- motion ---------- */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* ---------- shadcn bridge (keeps Radix primitives on-palette) ---------- */
+  --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--on-accent);
+  --color-secondary: var(--surface-muted);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--ink-soft);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--accent);
+  --color-chart-1: var(--accent);
+  --color-chart-2: var(--accent-soft);
+  --color-chart-3: #1e4ea2;
+  --color-chart-4: #e0a63c;
+  --color-chart-5: #9aa6a1;
+  --color-sidebar: var(--surface-muted);
+  --color-sidebar-foreground: var(--ink);
+  --color-sidebar-primary: var(--accent);
+  --color-sidebar-primary-foreground: var(--on-accent);
+  --color-sidebar-accent: var(--accent-tint);
+  --color-sidebar-accent-foreground: var(--accent);
+  --color-sidebar-border: var(--line);
+  --color-sidebar-ring: var(--accent);
+}
+
+/* ==========================================================================
+   LIGHT
+   ========================================================================== */
+:root {
+  --canvas: #06361e;
+  --surface: #ffffff;
+  --surface-muted: #f5f7f6;
+  --line: #e6ebe8;
+  --line-soft: #eef2f0;
+  --deep: #071a12;
+  --deep-ring: #0c1e18;
+
+  --ink: #0a1512;
+  --ink-soft: #6b7a74;
+  --ink-faint: #9aa6a1;
+
+  --on-accent: #ffffff;
+
+  --danger: #e0342c;
+  --danger-soft: #fbe9e8;
+  --warn: #b5761a;
+  --warn-soft: #faf0de;
+  --info: #4a90d9;
+
+  --radius: 20px;
+
+  color-scheme: light;
+}
+
+/* ---------- accent themes ---------- */
+:root,
+[data-accent="green"] {
+  --accent: #12663c;
+  --accent-strong: #0c4e2c;
+  --accent-soft: #5abe8a;
+  --accent-tint: #e8f3ec;
+}
+[data-accent="ocean"] {
+  --accent: #1e4ea2;
+  --accent-strong: #0c3066;
+  --accent-soft: #7fb0e5;
+  --accent-tint: #e8eefa;
+}
+[data-accent="plum"] {
+  --accent: #6d3bbf;
+  --accent-strong: #4c2790;
+  --accent-soft: #b294e4;
+  --accent-tint: #f0eafb;
+}
+[data-accent="rose"] {
+  --accent: #c2395c;
+  --accent-strong: #93253f;
+  --accent-soft: #e894a9;
+  --accent-tint: #fbeaee;
+}
+[data-accent="amber"] {
+  --accent: #b5761a;
+  --accent-strong: #8a5810;
+  --accent-soft: #e6bd76;
+  --accent-tint: #faf0de;
+}
+
+/* ==========================================================================
+   DARK
+   ========================================================================== */
+.dark {
+  --canvas: #04170f;
+  --surface: #0b1614;
+  --surface-muted: #101c18;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-soft: rgba(255, 255, 255, 0.05);
+  --deep: #071a12;
+  --deep-ring: #163324;
+
+  --ink: #eaf2ee;
+  --ink-soft: #93a19b;
+  --ink-faint: #6e7f79;
+
+  --danger: #ef5a52;
+  --danger-soft: rgba(224, 52, 44, 0.16);
+  --warn: #e0b463;
+  --warn-soft: rgba(181, 118, 26, 0.18);
+  --info: #6fa9e6;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 18px 36px -18px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-pop: 0 30px 70px -24px rgba(0, 0, 0, 0.75);
+
+  color-scheme: dark;
+}
+
+.dark[data-accent="green"],
+.dark [data-accent="green"] {
+  --accent: #2f8f5f;
+  --accent-strong: #1d6b44;
+  --accent-soft: #6fd0a0;
+  --accent-tint: rgba(90, 190, 138, 0.14);
+}
+.dark[data-accent="ocean"] {
+  --accent: #3f74c8;
+  --accent-strong: #2a5499;
+  --accent-soft: #8db9ee;
+  --accent-tint: rgba(127, 176, 229, 0.14);
+}
+.dark[data-accent="plum"] {
+  --accent: #8f5fd8;
+  --accent-strong: #6d3bbf;
+  --accent-soft: #bda1ec;
+  --accent-tint: rgba(178, 148, 228, 0.14);
+}
+.dark[data-accent="rose"] {
+  --accent: #d95b7c;
+  --accent-strong: #b03e5d;
+  --accent-soft: #ef9db1;
+  --accent-tint: rgba(232, 148, 169, 0.14);
+}
+.dark[data-accent="amber"] {
+  --accent: #d0921f;
+  --accent-strong: #a9700f;
+  --accent-soft: #ecc78b;
+  --accent-tint: rgba(230, 189, 118, 0.14);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.45;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.015em;
+  }
+
+  /* thin, quiet scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--ink-faint) 45%, transparent)
+      transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--ink-faint) 40%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, var(--ink-faint) 65%, transparent);
+  }
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+
+/* card in repose → lifts on hover (CSS only, never Motion) */
+@utility card-hover {
+  transition:
+    transform 220ms var(--ease-out-quint),
+    box-shadow 220ms var(--ease-out-quint),
+    border-color 220ms var(--ease-out-quint);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+/* concentric rings used inside the deep cards */
+@utility rings-deep {
+  background-image: repeating-radial-gradient(
+    circle at 78% 118%,
+    color-mix(in oklab, var(--deep-ring) 85%, transparent) 0 1px,
+    transparent 1px 32px
+  );
+}
+
+/* hachure fill for "previous period" bars */
+@utility hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--ink-faint) 55%, transparent) 0 1.5px,
+    transparent 1.5px 6px
+  );
+}
+
+@utility label-section {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+@utility metric-num {
+  font-size: 38px;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility card-surface {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- accent retint sweep (Appearance setting) ---------- */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 520ms var(--ease-out-quint),
+    border-color 520ms var(--ease-out-quint),
+    color 520ms var(--ease-out-quint),
+    fill 520ms var(--ease-out-quint),
+    stroke 520ms var(--ease-out-quint) !important;
+}
+
+/* ---------- circular reveal on theme switch (View Transitions) ---------- */
+@keyframes vt-reveal-in {
+  from {
+    clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}
+@keyframes vt-reveal-out {
+  from {
+    clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+  to {
+    clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-vt="to-dark"]::view-transition-old(root) {
+  z-index: 1;
+}
+html[data-vt="to-dark"]::view-transition-new(root) {
+  z-index: 2;
+  animation: vt-reveal-in 560ms var(--ease-out-quint) both;
+}
+
+html[data-vt="to-light"]::view-transition-old(root) {
+  z-index: 2;
+  animation: vt-reveal-out 560ms var(--ease-out-quint) both;
+}
+html[data-vt="to-light"]::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* drawer / dialog backdrops: quiet blur, deep tint */
+[data-slot="sheet-overlay"],
+[data-slot="dialog-overlay"] {
+  background-color: color-mix(in oklab, var(--deep) 42%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+/* ---------- route entrance (CSS so it can never stall) ---------- */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-in 320ms var(--ease-out-quint) both;
+}
+
+/* ---------- misc keyframes ---------- */
+@keyframes tracker-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — everything still works, nothing moves
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
