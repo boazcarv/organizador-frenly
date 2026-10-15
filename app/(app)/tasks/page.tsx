@@ -49,7 +49,14 @@ export default function TasksPage() {
     const internal = new Set(
       members.filter((member) => member.company === "Frenly Studio").map((member) => member.name),
     );
-    return new Set(projects.filter((project) => internal.has(project.owner)).map((project) => project.id));
+    return new Set(
+      projects
+        .filter((project) => {
+          const owners = project.owners?.length ? project.owners : project.owner ? [project.owner] : [];
+          return owners.some((owner) => internal.has(owner));
+        })
+        .map((project) => project.id),
+    );
   }, [members, projects]);
 
   const filter = useCallback(

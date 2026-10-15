@@ -20,7 +20,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { formatShortDate } from "@/lib/format";
 import type { Project } from "@/lib/types";
 
-function ProjectRow({ project, index }: { project: Project; index: number }) {
+function ProjectRow({
+  project,
+  index,
+  onEdit,
+}: {
+  project: Project;
+  index: number;
+  onEdit?: (project: Project) => void;
+}) {
   const router = useRouter();
   const deleteProject = useDeleteProject();
 
@@ -36,6 +44,9 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
       });
     }
   };
+
+  const ownersList = project.owners?.length ? project.owners : project.owner ? [project.owner] : [];
+  const ownersLabel = ownersList.join(", ");
 
   return (
     <motion.li
@@ -54,7 +65,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[13.5px] font-semibold text-ink">{project.name}</span>
           <span className="mt-0.5 block truncate text-[11.5px] text-ink-faint">
-            {project.type} · {project.owner}
+            {project.type} · {ownersLabel}
           </span>
         </span>
 
@@ -89,6 +100,14 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[212px] rounded-[16px] border-line bg-surface p-1.5">
+          {onEdit ? (
+            <DropdownMenuItem
+              onSelect={() => onEdit(project)}
+              className="gap-2.5 rounded-[10px] px-2 py-1.5 text-[13px]"
+            >
+              Editar projeto
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem
             onSelect={() => router.push("/tasks")}
             className="gap-2.5 rounded-[10px] px-2 py-1.5 text-[13px]"
@@ -122,10 +141,12 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
 export function ProjectsList({
   projects,
   onNew,
+  onEdit,
   onRefresh,
 }: {
   projects: Project[];
   onNew: () => void;
+  onEdit?: (project: Project) => void;
   onRefresh?: () => void;
 }) {
   return (
@@ -187,7 +208,7 @@ export function ProjectsList({
       ) : (
         <motion.ul layout className="flex-1 space-y-0.5 px-3 pb-3">
           {projects.map((project, index) => (
-            <ProjectRow key={project.id} project={project} index={index} />
+            <ProjectRow key={project.id} project={project} index={index} onEdit={onEdit} />
           ))}
         </motion.ul>
       )}

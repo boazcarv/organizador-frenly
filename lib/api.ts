@@ -61,7 +61,8 @@ const json = (body: unknown): RequestInit => ({ body: JSON.stringify(body) });
 export interface CreateProjectPayload {
   name: string;
   type: string;
-  owner: string;
+  owner?: string;
+  owners?: string[];
   status: Project["status"];
   dueAt: string;
   progress?: number;

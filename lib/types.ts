@@ -16,6 +16,7 @@ export interface Project {
   name: string;
   type: string;
   owner: string;
+  owners: string[];
   status: ProjectStatus;
   progress: number;
   color: PastelKey;
