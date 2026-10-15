@@ -119,6 +119,25 @@ export function useProfile() {
 
 /* ------------------------------- mutations -------------------------------- */
 
+/** Updates an existing project. */
+export function useUpdateProject() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<Project> }) =>
+      api.updateProject(id, patch),
+    onSuccess: (project) => {
+      if (project) {
+        client.setQueryData<Project[]>(queryKeys.projects, (current) =>
+          current?.map((item) => (item.id === project.id ? project : item)),
+        );
+      }
+      void client.invalidateQueries({ queryKey: queryKeys.projects });
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
+    },
+  });
+}
+
 /** Creates a project and refreshes every aggregate that depends on it. */
 export function useCreateProject() {
   const client = useQueryClient();
@@ -128,7 +147,9 @@ export function useCreateProject() {
       client.setQueryData<Project[]>(queryKeys.projects, (current) =>
         current ? [project, ...current] : [project],
       );
+      void client.invalidateQueries({ queryKey: queryKeys.projects });
       void client.invalidateQueries({ queryKey: queryKeys.dashboard });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
     },
   });
 }
@@ -142,8 +163,10 @@ export function useDeleteProject() {
       client.setQueryData<Project[]>(queryKeys.projects, (current) =>
         current?.filter((project) => project.id !== id),
       );
+      void client.invalidateQueries({ queryKey: queryKeys.projects });
       void client.invalidateQueries({ queryKey: queryKeys.tasks });
       void client.invalidateQueries({ queryKey: queryKeys.dashboard });
+      void client.invalidateQueries({ queryKey: queryKeys.members });
     },
   });
 }

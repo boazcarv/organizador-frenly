@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatLongDate } from "@/lib/format";
 import { useDashboard, useProfile } from "@/lib/queries";
+import type { Project } from "@/lib/types";
 import { useUiStore } from "@/store/ui";
 
 function greetingFor(hour: number) {
@@ -69,6 +70,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const openMember = useUiStore((state) => state.openMember);
   const hour = new Date().getHours();
 
@@ -79,7 +81,20 @@ export default function DashboardPage() {
 
   const byStatus = (status: string) => projects.filter((project) => project.status === status);
 
-  const openNewProject = () => setProjectDialogOpen(true);
+  const openNewProject = () => {
+    setEditingProject(null);
+    setProjectDialogOpen(true);
+  };
+
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project);
+    setProjectDialogOpen(true);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setProjectDialogOpen(open);
+    if (!open) setEditingProject(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -172,6 +187,7 @@ export default function DashboardPage() {
                 <ProjectsList
                   projects={projects}
                   onNew={openNewProject}
+                  onEdit={handleEditProject}
                   onRefresh={() => void queryClient.invalidateQueries({ queryKey: ["dashboard"] })}
                 />
               </StaggerItem>
@@ -211,7 +227,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <NewProjectDialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen} />
+      <NewProjectDialog
+        open={projectDialogOpen}
+        onOpenChange={handleOpenChange}
+        project={editingProject}
+      />
     </div>
   );
 }

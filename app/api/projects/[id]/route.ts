@@ -24,9 +24,12 @@ export async function PATCH(request: Request, { params }: Params) {
     if (!user) return unauthorized();
 
     const { id } = await params;
-    const body = await readJson<Project>(request);
+    const body = await readJson<Partial<Project>>(request);
     if (body.progress !== undefined && (body.progress < 0 || body.progress > 100)) {
       return badRequest("O progresso precisa estar entre 0 e 100");
+    }
+    if (body.owners !== undefined && Array.isArray(body.owners) && body.owners.length === 0 && !body.owner) {
+      return badRequest("Escolha pelo menos um responsável");
     }
     const updated = await updateProject(id, body);
     return updated ? ok(updated) : notFound("Projeto não encontrado");

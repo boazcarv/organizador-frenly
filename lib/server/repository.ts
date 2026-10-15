@@ -46,6 +46,7 @@ interface ProjectRow {
   name: string;
   type: string;
   owner: string;
+  owners: string[] | null;
   status: ProjectStatus;
   progress: number;
   color: PastelKey;
@@ -57,11 +58,16 @@ interface ProjectRow {
 }
 
 function toProject(row: ProjectRow): Project {
+  const rowOwners = Array.isArray(row.owners) ? row.owners.filter(Boolean) : [];
+  const owners = rowOwners.length > 0 ? rowOwners : row.owner ? [row.owner] : [];
+  const primaryOwner = owners[0] ?? row.owner ?? "";
+
   return {
     id: row.id,
     name: row.name,
     type: row.type,
-    owner: row.owner,
+    owner: primaryOwner,
+    owners,
     status: row.status,
     progress: row.progress,
     color: row.color,
@@ -155,7 +161,8 @@ const PASTEL_CYCLE: PastelKey[] = ["peach", "blue", "sage", "sand", "lilac"];
 export interface CreateProjectInput {
   name: string;
   type: string;
-  owner: string;
+  owner?: string;
+  owners?: string[];
   status: ProjectStatus;
   dueAt: string;
   progress?: number;
@@ -179,15 +186,24 @@ export async function getProject(id: string): Promise<Project | undefined> {
 
 export async function createProject(input: CreateProjectInput): Promise<Project> {
   const sql = await getSql();
+  const rawOwners = Array.isArray(input.owners) && input.owners.length > 0
+    ? input.owners
+    : input.owner
+      ? [input.owner]
+      : [];
+  const normalizedOwners = Array.from(new Set(rawOwners.map((item) => item.trim()).filter(Boolean)));
+  const primaryOwner = normalizedOwners[0] ?? input.owner ?? "";
+
   const rows = await sql.query<ProjectRow>(
-    `insert into projects (id, name, type, owner, status, progress, color, icon, due_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `insert into projects (id, name, type, owner, owners, status, progress, color, icon, due_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      returning *`,
     [
       nextId("prj"),
       input.name,
       input.type,
-      input.owner,
+      primaryOwner,
+      normalizedOwners,
       input.status,
       input.progress ?? 0,
       input.color ?? PASTEL_CYCLE[Math.floor(Math.random() * PASTEL_CYCLE.length)],
@@ -203,18 +219,28 @@ export async function updateProject(id: string, patch: Partial<Project>): Promis
   if (!current) return undefined;
 
   const next = { ...current, ...patch, id: current.id };
+
+  const rawOwners = Array.isArray(next.owners) && next.owners.length > 0
+    ? next.owners
+    : next.owner
+      ? [next.owner]
+      : [];
+  const normalizedOwners = Array.from(new Set(rawOwners.map((item) => item.trim()).filter(Boolean)));
+  const primaryOwner = normalizedOwners[0] ?? next.owner ?? "";
+
   const sql = await getSql();
   const rows = await sql.query<ProjectRow>(
     `update projects
-        set name = $2, type = $3, owner = $4, status = $5, progress = $6,
-            color = $7, icon = $8, due_at = $9
+        set name = $2, type = $3, owner = $4, owners = $5, status = $6, progress = $7,
+            color = $8, icon = $9, due_at = $10
       where id = $1
       returning *`,
     [
       id,
       next.name,
       next.type,
-      next.owner,
+      primaryOwner,
+      normalizedOwners,
       next.status,
       Math.max(0, Math.min(100, Math.round(next.progress))),
       next.color,
@@ -406,7 +432,7 @@ async function memberStats(): Promise<Map<string, MemberStats>> {
   const sql = await getSql();
   const rows = await sql.query<MemberStats>(`
     select u.id as user_id,
-           (select count(*) from projects p where p.owner = u.name)::text as projects,
+           (select count(*) from projects p where u.name = any(p.owners) or (p.owner = u.name and (p.owners is null or array_length(p.owners, 1) is null or array_length(p.owners, 1) = 0)))::text as projects,
            (select count(*) from tasks t where t.assignee = u.name)::text as tasks,
            (select count(*) from tasks t where t.assignee = u.name and t.status = 'done')::text as done,
            (select coalesce(sum(te.seconds), 0) from time_entries te where te.user_id = u.id)::text as seconds,

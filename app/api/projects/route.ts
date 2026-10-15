@@ -7,7 +7,8 @@ const statuses = ["active", "waiting", "pending", "completed"];
 function validate(input: Partial<CreateProjectInput>): string | null {
   if (!input.name || input.name.trim().length < 3) return "O nome do projeto precisa de 3 caracteres ou mais";
   if (!input.type) return "Informe o tipo do projeto";
-  if (!input.owner) return "Escolha um responsável";
+  const hasOwners = (Array.isArray(input.owners) && input.owners.length > 0) || Boolean(input.owner);
+  if (!hasOwners) return "Escolha pelo menos um responsável";
   if (!input.dueAt || Number.isNaN(new Date(input.dueAt).getTime())) return "Data limite inválida";
   if (!input.status || !statuses.includes(input.status)) return "Status inválido";
   return null;
@@ -32,10 +33,18 @@ export async function POST(request: Request) {
     const problem = validate(body);
     if (problem) return badRequest(problem);
 
+    const rawOwners = Array.isArray(body.owners) && body.owners.length > 0
+      ? body.owners.map(String)
+      : body.owner
+        ? [String(body.owner)]
+        : [];
+    const normalizedOwners = Array.from(new Set(rawOwners.map((item) => item.trim()).filter(Boolean)));
+
     const project = await createProject({
       name: String(body.name).trim(),
       type: String(body.type),
-      owner: String(body.owner),
+      owner: normalizedOwners[0] ?? (body.owner ? String(body.owner) : ""),
+      owners: normalizedOwners,
       status: body.status as CreateProjectInput["status"],
       dueAt: new Date(String(body.dueAt)).toISOString(),
       progress: typeof body.progress === "number" ? Math.min(100, Math.max(0, body.progress)) : 0,

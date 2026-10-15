@@ -36,6 +36,7 @@ create table if not exists projects (
   name         text not null,
   type         text not null default '',
   owner        text not null default '',
+  owners       text[] not null default '{}',
   status       text not null default 'pending',
   progress     integer not null default 0,
   color        text not null default 'sage',
@@ -105,7 +106,18 @@ create index if not exists time_entries_user_idx    on time_entries (user_id);
 `;
 
 /** Ordered, additive migrations for databases created by an earlier version. */
-const MIGRATIONS: { id: string; sql: string }[] = [];
+const MIGRATIONS: { id: string; sql: string }[] = [
+  {
+    id: "001_projects_owners_array",
+    sql: `
+      alter table projects add column if not exists owners text[] not null default '{}';
+      update projects
+         set owners = array[owner]
+       where (owner <> '' and owner is not null)
+         and (owners is null or array_length(owners, 1) is null or array_length(owners, 1) = 0);
+    `,
+  },
+];
 
 export async function bootstrapSchema(sql: Sql): Promise<void> {
   await sql.exec(TABLES);

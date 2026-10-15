@@ -52,7 +52,11 @@ export function CommandMenu() {
     const term = query.trim().toLowerCase();
     const match = (value: string) => value.toLowerCase().includes(term);
     return {
-      projects: projects.filter((project) => !term || match(project.name) || match(project.owner)),
+      projects: projects.filter((project) => {
+        if (!term) return true;
+        if (match(project.name) || match(project.owner)) return true;
+        return (project.owners ?? []).some((owner) => match(owner));
+      }),
       tasks: tasks.filter((task) => !term || match(task.title) || match(task.assignee)).slice(0, 6),
       people: members.filter((member) => !term || match(member.name) || match(member.role)),
     };
@@ -89,22 +93,28 @@ export function CommandMenu() {
 
         {filtered.projects.length > 0 ? (
           <CommandGroup heading="Projetos">
-            {filtered.projects.slice(0, 5).map((project) => (
-              <CommandItem
-                key={project.id}
-                value={`projeto ${project.name}`}
-                onSelect={() => go("/dashboard")}
-              >
-                <ProjectIconTile
-                  icon={project.icon}
-                  color={project.color}
-                  size="sm"
-                  className="size-5 rounded-[7px] [&_svg]:size-3"
-                />
-                <span className="min-w-0 flex-1 truncate">{project.name}</span>
-                <span className="truncate text-[11.5px] text-ink-faint">{project.owner}</span>
-              </CommandItem>
-            ))}
+            {filtered.projects.slice(0, 5).map((project) => {
+              const displayOwners = project.owners?.length
+                ? project.owners.join(", ")
+                : project.owner;
+
+              return (
+                <CommandItem
+                  key={project.id}
+                  value={`projeto ${project.name} ${displayOwners}`}
+                  onSelect={() => go("/dashboard")}
+                >
+                  <ProjectIconTile
+                    icon={project.icon}
+                    color={project.color}
+                    size="sm"
+                    className="size-5 rounded-[7px] [&_svg]:size-3"
+                  />
+                  <span className="min-w-0 flex-1 truncate">{project.name}</span>
+                  <span className="truncate text-[11.5px] text-ink-faint">{displayOwners}</span>
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         ) : null}
 
