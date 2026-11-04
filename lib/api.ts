@@ -136,7 +136,7 @@ export const api = {
 
   /* -------------------------------- events ------------------------------- */
   listEvents: () => request<CalEvent[]>("/api/events"),
-  createEvent: (payload: { title: string; start: string; end: string; priority?: CalEvent["priority"]; color?: CalEvent["color"] }) =>
+  createEvent: (payload: { title: string; start: string; end: string; priority?: CalEvent["priority"]; color?: CalEvent["color"]; tags?: string[]; attendees?: string[] }) =>
     request<CalEvent>("/api/events", { method: "POST", ...json(payload) }),
   listAgenda: () => request<CalEvent[]>("/api/events?scope=agenda"),
   listUpcoming: () => request<CalEvent[]>("/api/events?scope=upcoming"),

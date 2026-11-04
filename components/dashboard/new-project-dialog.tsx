@@ -185,7 +185,7 @@ export function NewProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[560px] gap-0 rounded-[22px] border-line bg-surface p-6">
+      <DialogContent className="max-h-[min(90dvh,820px)] overflow-y-auto max-w-[560px] gap-0 rounded-[22px] border-line bg-surface p-6">
         <DialogHeader className="gap-1">
           <DialogTitle className="text-[17px] font-semibold tracking-tight text-ink">
             {isEditing ? "Editar projeto" : "Novo projeto"}

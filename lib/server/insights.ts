@@ -220,6 +220,8 @@ export async function getDashboard(): Promise<DashboardSummary> {
       end: event.end,
       color: event.color,
       attendees: event.attendees,
+      kind: event.tags?.find((tag) => ["Reunião", "Prova", "Compromisso", "Apresentação"].includes(tag)),
+      location: event.tags?.find((tag) => tag.startsWith("Local: "))?.slice(7),
     }));
 
   const normalisedTime = timeRows.map((row) => ({

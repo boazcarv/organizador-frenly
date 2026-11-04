@@ -42,12 +42,16 @@ export function NewEventDialog({
 }) {
   const createEvent = useCreateEvent();
   const [title, setTitle] = useState("");
+  const [eventKind, setEventKind] = useState("Reunião");
+  const [location, setLocation] = useState("");
   const [start, setStart] = useState(() => localInputValue(nextHour(defaultDate)));
   const [end, setEnd] = useState(() => localInputValue(nextHourPlusOne(defaultDate)));
   const [error, setError] = useState<string | null>(null);
 
   const reset = () => {
     setTitle("");
+    setEventKind("Reunião");
+    setLocation("");
     setStart(localInputValue(nextHour(defaultDate)));
     setEnd(localInputValue(nextHourPlusOne(defaultDate)));
     setError(null);
@@ -61,6 +65,7 @@ export function NewEventDialog({
         title,
         start: new Date(start).toISOString(),
         end: new Date(end).toISOString(),
+        tags: [eventKind, ...(location.trim() ? [`Local: ${location.trim()}`] : [])],
       },
       {
         onSuccess: (created) => {
@@ -104,6 +109,19 @@ export function NewEventDialog({
               placeholder="Ex.: Revisão semanal com a CEO"
               className={fieldClass}
             />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="event-kind" className="text-[12.5px] font-medium text-ink">Tipo</Label>
+              <select id="event-kind" value={eventKind} onChange={(event) => setEventKind(event.target.value)} className={cn(fieldClass, "w-full px-3")}>
+                <option>Reunião</option><option>Prova</option><option>Compromisso</option><option>Apresentação</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="event-location" className="text-[12.5px] font-medium text-ink">Local (opcional)</Label>
+              <Input id="event-location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Sala, endereço…" className={fieldClass} />
+            </div>
           </div>
 
           <div className="space-y-1.5">

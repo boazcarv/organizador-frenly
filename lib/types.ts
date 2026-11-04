@@ -224,6 +224,8 @@ export interface Reminder {
   end: string;
   color: PastelKey;
   attendees: string[];
+  kind?: string;
+  location?: string;
 }
 
 export interface ProductivityPeriod {
