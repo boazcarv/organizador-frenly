@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { CommandMenu } from "@/components/shell/command-menu";
 import { Sidebar, SidebarContent } from "@/components/shell/sidebar";
@@ -14,6 +15,23 @@ import { useUiStore } from "@/store/ui";
  * green canvas. Sidebar + topbar stay mounted; only the inner view transitions.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    const heartbeat = () => {
+      if (document.visibilityState === "visible") {
+        void fetch("/api/presence", { method: "POST", credentials: "same-origin", keepalive: true }).catch(() => undefined);
+      }
+    };
+    heartbeat();
+    const timer = window.setInterval(heartbeat, 30_000);
+    document.addEventListener("visibilitychange", heartbeat);
+    window.addEventListener("focus", heartbeat);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", heartbeat);
+      window.removeEventListener("focus", heartbeat);
+    };
+  }, []);
+
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen);
 

@@ -72,8 +72,10 @@ export function ProfileForm() {
     try {
       await saveProfile.mutateAsync(values);
       toast.success("Perfil atualizado", { description: "Suas alterações já valem para o time." });
-    } catch {
-      toast.error("Não foi possível salvar", { description: "Verifique sua conexão e tente de novo." });
+    } catch (error) {
+      toast.error("Não foi possível salvar", {
+        description: error instanceof Error ? error.message : "O servidor não conseguiu salvar as alterações. Tente novamente.",
+      });
     }
   });
 

@@ -392,8 +392,18 @@ export async function deleteTask(id: string): Promise<boolean> {
 /*  members — the workspace's accounts, with their real numbers                */
 /* -------------------------------------------------------------------------- */
 
+export async function touchPresence(userId: string): Promise<void> {
+  const sql = await getSql();
+  await sql.query(
+    `insert into user_presence (user_id, last_seen_at) values ($1, now())
+     on conflict (user_id) do update set last_seen_at = excluded.last_seen_at`,
+    [userId],
+  );
+}
+
 interface MemberStats {
   user_id: string;
+  online: boolean;
   projects: string;
   tasks: string;
   done: string;
@@ -412,8 +422,7 @@ function toMember(user: Account, stats: MemberStats | undefined): Member {
     role: user.role,
     company: user.company,
     status: "active",
-    // Presence is not tracked: a green dot nobody can trust is worse than none.
-    online: false,
+    online: stats?.online ?? false,
     projects: Number(stats?.projects ?? "0"),
     tasks,
     weeklyProgress: tasks === 0 ? 0 : Math.round((done / tasks) * 100),
@@ -436,7 +445,8 @@ async function memberStats(): Promise<Map<string, MemberStats>> {
            (select count(*) from tasks t where t.assignee = u.name)::text as tasks,
            (select count(*) from tasks t where t.assignee = u.name and t.status = 'done')::text as done,
            (select coalesce(sum(te.seconds), 0) from time_entries te where te.user_id = u.id)::text as seconds,
-           (select max(te.started_at) from time_entries te where te.user_id = u.id) as last_active
+           (select max(te.started_at) from time_entries te where te.user_id = u.id) as last_active,
+           exists (select 1 from user_presence up where up.user_id = u.id and up.last_seen_at > now() - interval '90 seconds') as online
       from users u
   `);
   return new Map(rows.map((row) => [row.user_id, row]));
