@@ -2,25 +2,30 @@
 
 import { addMonths, startOfMonth, subMonths } from "date-fns";
 import { motion } from "motion/react";
-import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Agenda, UpcomingList } from "@/components/calendar/agenda";
 import { NewEventDialog } from "@/components/calendar/new-event-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { CalEvent } from "@/lib/types";
 import { MonthGrid, monthDays } from "@/components/calendar/month-grid";
 import { PageHeader } from "@/components/ui/page-header";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatLongDate, formatMonthYear, formatTime } from "@/lib/format";
 import { EASE_OUT_QUINT } from "@/lib/motion";
-import { useAgenda, useEvents, useUpcoming } from "@/lib/queries";
+import { useAgenda, useDeleteEvent, useEvents, useProfile, useUpcoming } from "@/lib/queries";
 
 export default function CalendarPage() {
   const { data: events, isPending } = useEvents();
   const { data: agenda } = useAgenda();
   const { data: upcoming } = useUpcoming();
+  const { data: profile } = useProfile();
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
+  const deleteEvent = useDeleteEvent();
 
   const days = useMemo(() => monthDays(month), [month]);
 
@@ -87,11 +92,7 @@ export default function CalendarPage() {
                     days={days}
                     reference={month}
                     events={events}
-                    onSelectEvent={(event) =>
-                      toast(event.title, {
-                        description: `${formatLongDate(event.start)} · ${formatTime(event.start)} – ${formatTime(event.end)} · ${event.owner}`,
-                      })
-                    }
+                    onSelectEvent={setSelectedEvent}
                   />
                 </div>
               </div>
@@ -124,6 +125,37 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      <Dialog open={Boolean(selectedEvent)} onOpenChange={(open) => { if (!open) setSelectedEvent(null); }}>
+        <DialogContent className="max-w-[420px] rounded-[20px] border-line bg-surface p-5">
+          {selectedEvent ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-base font-semibold text-ink">{selectedEvent.title}</DialogTitle>
+                <DialogDescription className="text-[13px] text-ink-soft">
+                  {formatLongDate(selectedEvent.start)} · {formatTime(selectedEvent.start)}–{formatTime(selectedEvent.end)} · Criado por {selectedEvent.owner}
+                </DialogDescription>
+              </DialogHeader>
+              {profile?.name === selectedEvent.owner ? <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  disabled={deleteEvent.isPending}
+                  onClick={() => {
+                    if (!window.confirm(`Cancelar o compromisso “${selectedEvent.title}”?`)) return;
+                    deleteEvent.mutate(selectedEvent.id, {
+                      onSuccess: () => { toast.success("Compromisso cancelado"); setSelectedEvent(null); },
+                      onError: (error) => { toast.error(error instanceof Error ? error.message : "Não foi possível cancelar o compromisso."); },
+                    });
+                  }}
+                  className="inline-flex h-9 items-center gap-2 rounded-full border border-danger/30 px-4 text-[13px] font-medium text-danger transition-colors hover:bg-danger-soft disabled:opacity-50"
+                >
+                  <Trash2 className="size-4" aria-hidden />
+                  {deleteEvent.isPending ? "Cancelando…" : "Cancelar compromisso"}
+                </button>
+              </div> : <p className="mt-4 text-right text-xs text-ink-faint">Somente quem criou o compromisso pode cancelá-lo.</p>}
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
       <NewEventDialog open={eventDialogOpen} onOpenChange={setEventDialogOpen} />
     </div>
   );

@@ -474,6 +474,14 @@ export async function listEvents(): Promise<CalEvent[]> {
   return rows.map(toEvent);
 }
 
+export async function deleteEvent(id: string, owner?: string): Promise<boolean> {
+  const sql = await getSql();
+  const rows = owner
+    ? await sql.query<{ id: string }>("delete from events where id = $1 and owner = $2 returning id", [id, owner])
+    : await sql.query<{ id: string }>("delete from events where id = $1 returning id", [id]);
+  return rows.length > 0;
+}
+
 export async function createEvent(input: CreateEventInput): Promise<CalEvent> {
   const sql = await getSql();
   const rows = await sql.query<EventRow>(
