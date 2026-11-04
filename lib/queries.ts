@@ -197,6 +197,20 @@ export function useMoveTask() {
   });
 }
 
+/** Removes a calendar event and refreshes all event views. */
+export function useDeleteEvent() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.deleteEvent,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.events });
+      void client.invalidateQueries({ queryKey: queryKeys.agenda });
+      void client.invalidateQueries({ queryKey: queryKeys.upcoming });
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard });
+    },
+  });
+}
+
 /** Adds an event to the calendar and refreshes everything that lists events. */
 export function useCreateEvent() {
   const client = useQueryClient();
