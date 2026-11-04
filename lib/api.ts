@@ -137,6 +137,7 @@ export const api = {
   /* -------------------------------- events ------------------------------- */
   listEvents: () => request<CalEvent[]>("/api/events"),
   deleteEvent: (id: string) => request<{ deleted: boolean }>(`/api/events/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  completeEvent: (id: string) => request<{ completed: boolean }>(`/api/events/${encodeURIComponent(id)}`, { method: "PATCH" }),
   createEvent: (payload: { title: string; start: string; end: string; priority?: CalEvent["priority"]; color?: CalEvent["color"]; tags?: string[]; attendees?: string[] }) =>
     request<CalEvent>("/api/events", { method: "POST", ...json(payload) }),
   listAgenda: () => request<CalEvent[]>("/api/events?scope=agenda"),

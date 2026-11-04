@@ -176,8 +176,10 @@ export async function getDashboard(): Promise<DashboardSummary> {
       start_at: Date | string;
       end_at: Date | string;
       color: CalEvent["color"];
+      tags: string[] | null;
       attendees: string[] | null;
-    }>("select id, title, start_at, end_at, color, attendees from events order by start_at asc"),
+      completed: boolean;
+    }>("select id, title, start_at, end_at, color, tags, attendees, completed from events where completed = false order by start_at asc"),
     sql.query<{ status: string; count: string }>(
       "select status, count(*)::text as count from projects group by status",
     ),
@@ -196,8 +198,9 @@ export async function getDashboard(): Promise<DashboardSummary> {
     owner: "",
     priority: "normal",
     color: row.color,
-    tags: [],
+    tags: row.tags ?? [],
     attendees: row.attendees ?? [],
+    completed: row.completed,
   }));
 
   const statusCount = (status: string) =>

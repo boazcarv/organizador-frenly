@@ -118,6 +118,7 @@ interface EventRow {
   color: PastelKey;
   tags: string[] | null;
   attendees: string[] | null;
+  completed: boolean;
 }
 
 function toEvent(row: EventRow): CalEvent {
@@ -131,6 +132,7 @@ function toEvent(row: EventRow): CalEvent {
     color: row.color,
     tags: row.tags ?? [],
     attendees: row.attendees ?? [],
+    completed: row.completed,
   };
 }
 
@@ -484,6 +486,15 @@ export async function listEvents(): Promise<CalEvent[]> {
   return rows.map(toEvent);
 }
 
+export async function completeEvent(id: string, owner: string): Promise<boolean> {
+  const sql = await getSql();
+  const rows = await sql.query<{ id: string }>(
+    "update events set completed = true where id = $1 and owner = $2 and completed = false returning id",
+    [id, owner],
+  );
+  return rows.length > 0;
+}
+
 export async function deleteEvent(id: string, owner?: string): Promise<boolean> {
   const sql = await getSql();
   const rows = owner
@@ -517,7 +528,7 @@ export async function listAgenda(): Promise<CalEvent[]> {
   const sql = await getSql();
   const rows = await sql.query<EventRow>(
     `select * from events
-      where start_at >= date_trunc('day', now()) and start_at < date_trunc('day', now()) + interval '1 day'
+      where completed = false and start_at >= date_trunc('day', now()) and start_at < date_trunc('day', now()) + interval '1 day'
       order by start_at asc`,
   );
   return rows.map(toEvent);
@@ -527,7 +538,7 @@ export async function listUpcoming(): Promise<CalEvent[]> {
   const sql = await getSql();
   const rows = await sql.query<EventRow>(
     `select * from events
-      where end_at >= now()
+      where completed = false and end_at >= now()
       order by start_at asc
       limit 6`,
   );
