@@ -45,8 +45,8 @@ export async function POST(request: Request) {
       owner: user.name,
       priority: body.priority === "high" ? "high" : "normal",
       color: body.color && colors.includes(body.color) ? body.color : colors[start.getDate() % colors.length],
-      tags: [],
-      attendees: body.attendees ?? [],
+      tags: Array.isArray(body.tags) ? body.tags.map(String).filter((tag) => tag.length <= 100).slice(0, 12) : [],
+      attendees: Array.isArray(body.attendees) ? body.attendees.map(String).slice(0, 30) : [],
     });
 
     return ok(event, 201);

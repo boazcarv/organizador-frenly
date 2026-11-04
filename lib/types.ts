@@ -95,6 +95,7 @@ export interface CalEvent {
   color: PastelKey;
   tags: string[];
   attendees: string[];
+  completed: boolean;
 }
 
 export interface TimeEntry {

@@ -73,6 +73,7 @@ create table if not exists events (
   color       text not null default 'sage',
   tags        text[] not null default '{}',
   attendees   text[] not null default '{}',
+  completed   boolean not null default false,
   created_at  timestamptz not null default now()
 );
 
@@ -121,6 +122,10 @@ const MIGRATIONS: { id: string; sql: string }[] = [
        where (owner <> '' and owner is not null)
          and (owners is null or array_length(owners, 1) is null or array_length(owners, 1) = 0);
     `,
+  },
+  {
+    id: "002_events_completion",
+    sql: "alter table events add column if not exists completed boolean not null default false;",
   },
 ];
 

@@ -1,17 +1,28 @@
 "use client";
 
 import { motion } from "motion/react";
-import { CalendarX2, Clock, Video } from "lucide-react";
+import { CalendarCheck2, CalendarX2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { InitialsAvatar } from "@/components/ui/initials-avatar";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { formatShortDate, formatTime, pastelHex } from "@/lib/format";
+import { useCompleteEvent, useProfile } from "@/lib/queries";
 import type { CalEvent } from "@/lib/types";
 
 /** Today's agenda — the list you actually act on. */
 export function Agenda({ events }: { events: CalEvent[] }) {
+  const completeEvent = useCompleteEvent();
+  const { data: profile } = useProfile();
+
+  const markComplete = (event: CalEvent) => {
+    completeEvent.mutate(event.id, {
+      onSuccess: () => toast.success("Lembrete concluído", { description: event.title }),
+      onError: (error) => toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o lembrete."),
+    });
+  };
+
   return (
     <Panel className="flex flex-col" padded={false}>
       <div className="p-5 pb-3">
@@ -55,16 +66,17 @@ export function Agenda({ events }: { events: CalEvent[] }) {
                     {formatTime(event.start)} – {formatTime(event.end)}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    toast.success("Entrando na sala", { description: `${event.title} · ${formatTime(event.start)}` })
-                  }
-                  className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-3 text-[11.5px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-strong)]"
-                >
-                  <Video className="size-3.5" aria-hidden />
-                  Entrar
-                </button>
+                {profile?.name === event.owner ? (
+                  <button
+                    type="button"
+                    disabled={completeEvent.isPending}
+                    onClick={() => markComplete(event)}
+                    className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-3 text-[11.5px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-strong)] disabled:opacity-60"
+                  >
+                    <CalendarCheck2 className="size-3.5" aria-hidden />
+                    Marcar como feita
+                  </button>
+                ) : null}
               </div>
 
               <div className="mt-2.5 flex items-center gap-2 pl-5.5">

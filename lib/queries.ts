@@ -197,6 +197,20 @@ export function useMoveTask() {
   });
 }
 
+/** Marks a calendar commitment complete and refreshes all event views. */
+export function useCompleteEvent() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.completeEvent,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.events });
+      void client.invalidateQueries({ queryKey: queryKeys.agenda });
+      void client.invalidateQueries({ queryKey: queryKeys.upcoming });
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard });
+    },
+  });
+}
+
 /** Removes a calendar event and refreshes all event views. */
 export function useDeleteEvent() {
   const client = useQueryClient();
