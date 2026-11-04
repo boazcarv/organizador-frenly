@@ -58,7 +58,7 @@ export function LoginForm() {
   return (
     <AuthShell
       title="Entrar no Frenly"
-      subtitle="Use a conta que você criou na primeira execução. As sessões valem por 30 dias."
+      subtitle="Use a conta criada na configuração inicial. O site fica disponível enquanto a hospedagem estiver ativa; os 30 dias se referem apenas à duração da sessão."
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">

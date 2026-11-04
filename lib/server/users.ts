@@ -135,7 +135,13 @@ export async function updateUser(
 
   // E-mail is deliberately not editable here: it is the login, and changing it
   // silently would be the easiest way to lock yourself out.
-  const next = { ...current, ...patch, id: current.id };
+  // JSON forms often omit fields that are not editable (for example `company`
+  // on the profile screen). Do not let an explicit `undefined` erase the
+  // persisted value and turn into SQL NULL for a NOT NULL column.
+  const definedPatch = Object.fromEntries(
+    Object.entries(patch).filter(([, value]) => value !== undefined),
+  ) as typeof patch;
+  const next = { ...current, ...definedPatch, id: current.id };
   const sql = await getSql();
   const rows = await sql.query<UserRow>(
     `update users

@@ -88,12 +88,6 @@ export function SidebarContent({
   const { data: tasks } = useTasks();
   const { mutate: logout } = useLogout();
   const reviewCount = tasks?.filter((task) => task.status === "review").length ?? 0;
-  const upgradeNotice = () =>
-    toast("Upgrade disponível", {
-      description: "O plano Studio libera relatórios avançados e horas ilimitadas.",
-      action: { label: "Ver planos", onClick: () => undefined },
-    });
-
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className={cn("flex items-center", collapsed ? "justify-center px-3 pt-3" : "px-3 pt-3")}>
@@ -155,7 +149,7 @@ export function SidebarContent({
 
       <div className="flex flex-col gap-2 px-3 pt-3 pb-3">
         <ThemePill collapsed={collapsed} />
-        <PromoCard collapsed={collapsed} onUpgrade={upgradeNotice} />
+        <PromoCard collapsed={collapsed} />
         <div className="hidden lg:block">
           <CollapseToggleRow collapsed={collapsed} />
         </div>
