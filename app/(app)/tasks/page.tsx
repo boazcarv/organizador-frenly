@@ -3,6 +3,8 @@
 import { ListChecks, Plus, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
+import { NewProjectDialog } from "@/components/dashboard/new-project-dialog";
+import { Progress } from "@/components/ui/progress";
 import { Board } from "@/components/tasks/board";
 import { TaskDetail } from "@/components/tasks/task-detail";
 import { Pressable } from "@/components/motion/pressable";
@@ -33,6 +35,7 @@ export default function TasksPage() {
   const [visibility, setVisibility] = useState("team");
   const [addStatus, setAddStatus] = useState<TaskStatus | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [editingProject, setEditingProject] = useState<import("@/lib/types").Project | null>(null);
 
   useEffect(() => {
     if (tasks) hydrate(tasks);
@@ -118,6 +121,25 @@ export default function TasksPage() {
           Adicionar
         </button>
       </PageHeader>
+
+      {projects?.length ? (
+        <section aria-label="Projetos do workspace" className="rounded-2xl border border-line bg-surface p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div><h2 className="text-sm font-semibold text-ink">Projetos do workspace</h2><p className="text-xs text-ink-faint">Acompanhe e atualize o progresso direto daqui.</p></div>
+            <span className="text-xs text-ink-soft">{projects.length} projeto(s)</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {projects.map((project) => (
+              <button key={project.id} type="button" onClick={() => setEditingProject(project)} className="rounded-xl border border-line bg-surface-muted/60 p-3 text-left transition-colors hover:bg-surface-muted">
+                <span className="flex items-center justify-between gap-2"><span className="truncate text-sm font-semibold text-ink">{project.name}</span><span className="text-xs tabular-nums text-ink-soft">{project.progress}%</span></span>
+                <span className="mt-2 block"><Progress value={project.progress} className="h-1.5" /></span>
+                <span className="mt-2 block truncate text-xs text-ink-faint">{project.type} · {project.status === "active" ? "Ativo" : project.status}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+      <NewProjectDialog open={Boolean(editingProject)} project={editingProject} onOpenChange={(open) => { if (!open) setEditingProject(null); }} />
 
       <div className="flex flex-wrap items-center gap-2">
         {scopes.map((item) => (

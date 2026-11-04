@@ -34,6 +34,10 @@ export function RemindersCard({ reminders }: { reminders: Reminder[] }) {
     (new Date(next.end).getTime() - new Date(next.start).getTime()) / 60_000;
 
   const handleStart = () => {
+    if (next.kind === "Prova" || next.kind === "Compromisso") {
+      toast(next.kind, { description: `${next.title}${next.location ? ` · ${next.location}` : ""}` });
+      return;
+    }
     const project = projects.find((item) => item.name === next.project);
     if (project) setProject(project.id);
     startTracker();
@@ -81,7 +85,7 @@ export function RemindersCard({ reminders }: { reminders: Reminder[] }) {
                 {formatTime(next.start)} – {formatTime(next.end)}
               </span>
             </p>
-            <p className="mt-1 truncate text-[11.5px] text-ink-faint">{next.project}</p>
+            <p className="mt-1 truncate text-[11.5px] text-ink-faint">{[next.kind, next.location, next.project].filter(Boolean).join(" · ")}</p>
           </div>
         </div>
 
@@ -128,7 +132,7 @@ export function RemindersCard({ reminders }: { reminders: Reminder[] }) {
           className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-strong)]"
         >
           <Video className="size-4" aria-hidden />
-          Iniciar reunião
+          {next.kind === "Prova" ? "Ver compromisso" : next.kind === "Compromisso" ? "Ver compromisso" : "Iniciar reunião"}
         </motion.button>
         <button
           type="button"
