@@ -71,7 +71,7 @@ export function useTasks() {
 }
 
 export function useMembers() {
-  return useApiQuery({ queryKey: queryKeys.members, queryFn: api.listMembers });
+  return useApiQuery({ queryKey: queryKeys.members, queryFn: api.listMembers, refetchInterval: 30_000 });
 }
 
 export function useMember(id: string | null) {

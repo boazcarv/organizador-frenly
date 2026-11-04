@@ -84,6 +84,11 @@ create table if not exists time_entries (
   started_at  timestamptz not null default now()
 );
 
+create table if not exists user_presence (
+  user_id      text primary key references users(id) on delete cascade,
+  last_seen_at timestamptz not null default now()
+);
+
 create table if not exists notification_settings (
   user_id      text not null references users(id) on delete cascade,
   id           text not null,
