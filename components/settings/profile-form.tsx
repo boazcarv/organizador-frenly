@@ -116,12 +116,12 @@ export function ProfileForm() {
         <Field label="E-mail" error={errors.email?.message}>
           <Input
             type="email"
+            readOnly
             aria-invalid={Boolean(errors.email)}
-            className={cn("h-10 rounded-[12px] border-line text-[13px]", errors.email && "border-danger")}
+            className={cn("h-10 rounded-[12px] border-line text-[13px] read-only:cursor-not-allowed read-only:opacity-70", errors.email && "border-danger")}
             {...form.register("email")}
           />
         </Field>
-
         <Field label="Cargo" error={errors.role?.message}>
           <Input
             aria-invalid={Boolean(errors.role)}
