@@ -13,13 +13,18 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Column } from "@/components/tasks/column";
 import { TaskCard } from "@/components/tasks/task-card";
 import { useMoveTask } from "@/lib/queries";
 import type { Member, Project, Task, TaskStatus } from "@/lib/types";
 import { useBoardStore, COLUMNS } from "@/store/board";
+
+const subscribeToPortal = () => () => {};
+const getPortalContainer = () => (typeof document === "undefined" ? null : document.body);
+const getServerPortalContainer = () => null;
 
 interface BoardProps {
   projects: Project[];
@@ -41,7 +46,10 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
   const reorder = useBoardStore((state) => state.reorder);
   const setScope = useBoardStore((state) => state.setScope);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeWidth, setActiveWidth] = useState<number | null>(null);
+  const portalContainer = useSyncExternalStore(subscribeToPortal, getPortalContainer, getServerPortalContainer);
   const dragOrigin = useRef<{ status: TaskStatus; index: number } | null>(null);
+  const clearOverlayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveTask = useMoveTask();
 
   const projectMap = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
@@ -68,15 +76,31 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
 
   const activeTask = activeId ? byId[activeId] : null;
 
+  useEffect(() => () => {
+    if (clearOverlayTimer.current) clearTimeout(clearOverlayTimer.current);
+  }, []);
+
+  const releaseOverlayAfterDrop = () => {
+    if (clearOverlayTimer.current) clearTimeout(clearOverlayTimer.current);
+    clearOverlayTimer.current = setTimeout(() => {
+      setActiveId(null);
+      setActiveWidth(null);
+      clearOverlayTimer.current = null;
+    }, 320);
+  };
+
   const columnOf = (id: string): TaskStatus | undefined => {
     if (COLUMNS.some((column) => column.id === id)) return id as TaskStatus;
     return COLUMNS.find((column) => columns[column.id].includes(id))?.id;
   };
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (clearOverlayTimer.current) clearTimeout(clearOverlayTimer.current);
+    clearOverlayTimer.current = null;
     const id = String(event.active.id);
     const status = columnOf(id);
     if (status) dragOrigin.current = { status, index: columns[status].indexOf(id) };
+    setActiveWidth(event.active.rect.current.initial?.width ?? null);
     setActiveId(id);
   };
 
@@ -98,7 +122,7 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
     const over = event.over ? String(event.over.id) : null;
     const origin = dragOrigin.current;
     const to = over ? columnOf(over) : undefined;
-    setActiveId(null);
+    releaseOverlayAfterDrop();
     dragOrigin.current = null;
 
     if (!origin) return;
@@ -151,7 +175,10 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
+        if (clearOverlayTimer.current) clearTimeout(clearOverlayTimer.current);
+        clearOverlayTimer.current = null;
         setActiveId(null);
+        setActiveWidth(null);
         const origin = dragOrigin.current;
         if (activeId && origin) move(activeId, origin.status, origin.index);
         dragOrigin.current = null;
@@ -191,20 +218,26 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
         ))}
       </div>
 
-      <DragOverlay
-        adjustScale={false}
-        dropAnimation={{ duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }}
-        style={{ cursor: "grabbing", pointerEvents: "none", zIndex: 60 }}
-      >
-        {activeTask ? (
-          <TaskCard
-            overlay
-            task={activeTask}
-            project={projectMap.get(activeTask.projectId)}
-            memberColor={memberColors.get(activeTask.assignee)}
-          />
-        ) : null}
-      </DragOverlay>
+      {portalContainer
+        ? createPortal(
+            <DragOverlay
+              adjustScale={false}
+              dropAnimation={{ duration: 280, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }}
+              style={{ cursor: "grabbing", pointerEvents: "none", zIndex: 60 }}
+            >
+              {activeTask ? (
+                <TaskCard
+                  overlay
+                  overlayWidth={activeWidth}
+                  task={activeTask}
+                  project={projectMap.get(activeTask.projectId)}
+                  memberColor={memberColors.get(activeTask.assignee)}
+                />
+              ) : null}
+            </DragOverlay>,
+            portalContainer,
+          )
+        : null}
     </DndContext>
   );
 }

@@ -16,17 +16,18 @@ interface TaskCardProps {
   onOpen?: (task: Task) => void;
   /** rendered inside the DragOverlay: lifted, follows the pointer, no sortable wiring */
   overlay?: boolean;
+  overlayWidth?: number | null;
   memberColor?: "peach" | "blue" | "sage" | "sand" | "lilac";
 }
 
-export function TaskCard({ task, project, onOpen, overlay = false, memberColor = "sage" }: TaskCardProps) {
+export function TaskCard({ task, project, onOpen, overlay = false, overlayWidth, memberColor = "sage" }: TaskCardProps) {
   const sortable = useSortable({ id: task.id, disabled: overlay });
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
+  const { attributes, listeners, setNodeRef, transform, isDragging } = sortable;
   const style = overlay
-    ? undefined
+    ? { width: overlayWidth ?? undefined }
     : {
         transform: CSS.Translate.toString(transform),
-        transition: transition ?? "transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        transition: isDragging ? undefined : "transform 280ms cubic-bezier(0.16, 1, 0.3, 1)",
       };
 
   return (
