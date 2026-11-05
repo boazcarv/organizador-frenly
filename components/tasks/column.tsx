@@ -44,8 +44,10 @@ export function Column({
   const ids = tasks.map((task) => task.id);
 
   return (
-    <section
+    <motion.section
       ref={setNodeRef}
+      animate={{ scale: isOver ? 1.006 : 1 }}
+      transition={{ type: "spring", stiffness: 420, damping: 32, mass: 0.55 }}
       aria-label={`Coluna ${title}`}
       className={cn(
         "flex w-[280px] shrink-0 snap-start flex-col rounded-[18px] border bg-surface-muted/70 p-3 transition-colors duration-200 md:w-auto",
@@ -139,6 +141,6 @@ export function Column({
           ) : null}
         </div>
       </SortableContext>
-    </section>
+    </motion.section>
   );
 }
