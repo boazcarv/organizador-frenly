@@ -94,21 +94,11 @@ export function TaskCard({ task, project, onOpen, overlay = false, overlayWidth,
         </span>
       </div>
 
-      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-surface-muted">
-        <motion.span
-          className="block h-full rounded-full bg-[var(--accent)]"
-          initial={overlay ? false : { width: 0 }}
-          animate={{ width: `${task.progress}%` }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        />
-      </div>
-
-      <div className="mt-2 flex items-center justify-between gap-2">
+      <div className="mt-3 flex items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           <InitialsAvatar name={task.assignee} color={memberColor} size="xs" />
           <span className="truncate text-[11px] text-ink-soft">{task.assignee.split(" ")[0]}</span>
         </span>
-        <span className="text-[10.5px] tabular-nums text-ink-faint">{task.progress}%</span>
       </div>
     </motion.article>
   );
