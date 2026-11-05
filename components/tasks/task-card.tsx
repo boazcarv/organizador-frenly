@@ -27,12 +27,15 @@ export function TaskCard({ task, project, onOpen, overlay = false, memberColor =
     ? undefined
     : {
         transform: CSS.Translate.toString(transform),
-        transition,
+        transition: transition ?? "transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1)",
       };
 
   return (
     <motion.article
       ref={overlay ? undefined : setNodeRef}
+      initial={overlay ? { opacity: 0.8, scale: 0.96, rotate: 0 } : false}
+      animate={overlay ? { opacity: 1, scale: 1.035, rotate: 1.25 } : undefined}
+      transition={overlay ? { type: "spring", stiffness: 480, damping: 32, mass: 0.55 } : undefined}
       style={style}
       {...(overlay ? {} : attributes)}
       {...(overlay ? {} : listeners)}

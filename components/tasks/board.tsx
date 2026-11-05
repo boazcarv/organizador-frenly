@@ -13,7 +13,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Column } from "@/components/tasks/column";
 import { TaskCard } from "@/components/tasks/task-card";
@@ -41,6 +41,7 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
   const reorder = useBoardStore((state) => state.reorder);
   const setScope = useBoardStore((state) => state.setScope);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const dragOrigin = useRef<{ status: TaskStatus; index: number } | null>(null);
   const moveTask = useMoveTask();
 
   const projectMap = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
@@ -73,7 +74,10 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(String(event.active.id));
+    const id = String(event.active.id);
+    const status = columnOf(id);
+    if (status) dragOrigin.current = { status, index: columns[status].indexOf(id) };
+    setActiveId(id);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -92,27 +96,38 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
   const handleDragEnd = (event: DragEndEvent) => {
     const active = String(event.active.id);
     const over = event.over ? String(event.over.id) : null;
-    const from = columnOf(active);
+    const origin = dragOrigin.current;
+    const to = over ? columnOf(over) : undefined;
     setActiveId(null);
-    if (!over || !from) return;
+    dragOrigin.current = null;
 
-    const to = columnOf(over);
-    if (!to) return;
-
-    if (from === to) {
-      const ids = columns[to];
-      const oldIndex = ids.indexOf(active);
-      const newIndex = ids.indexOf(over);
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        move(active, to, newIndex);
-      }
+    if (!origin) return;
+    if (!to) {
+      move(active, origin.status, origin.index);
       return;
     }
 
-    move(active, to, columns[to].length);
-    moveTask.mutate({ id: active, status: to, progress: to === "done" ? 100 : undefined });
+    const overIndex = columns[to].indexOf(over!);
+    const targetIndex = overIndex < 0 ? columns[to].length : overIndex;
+    move(active, to, targetIndex);
+
+    // Drag-over updates the local board before drop. Persist based on the
+    // original column captured at drag start, not the already-mutated store.
+    if (origin.status === to) return;
+
     const title = COLUMNS.find((column) => column.id === to)?.title ?? to;
-    toast.success("Tarefa movida", { description: `${byId[active]?.title ?? "Cartão"} → ${title}` });
+    moveTask.mutate(
+      { id: active, status: to, progress: to === "done" ? 100 : undefined },
+      {
+        onSuccess: () => toast.success("Tarefa movida", { description: `${byId[active]?.title ?? "Cartão"} → ${title}` }),
+        onError: (error) => {
+          move(active, origin.status, origin.index);
+          toast.error("Não foi possível salvar a tarefa", {
+            description: error instanceof Error ? error.message : "A tarefa voltou à coluna original.",
+          });
+        },
+      },
+    );
   };
 
   const handleSort = (status: TaskStatus) => {
@@ -135,7 +150,12 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveId(null)}
+      onDragCancel={() => {
+        setActiveId(null);
+        const origin = dragOrigin.current;
+        if (activeId && origin) move(activeId, origin.status, origin.index);
+        dragOrigin.current = null;
+      }}
       accessibility={{
         announcements: {
           onDragStart: ({ active }) => `Cartão ${byId[String(active.id)]?.title ?? ""} selecionado.`,
@@ -172,7 +192,8 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
       </div>
 
       <DragOverlay
-        dropAnimation={{ duration: 200, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }}
+        adjustScale={false}
+        dropAnimation={{ duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }}
         style={{ cursor: "grabbing" }}
       >
         {activeTask ? (

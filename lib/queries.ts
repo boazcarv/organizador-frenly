@@ -193,6 +193,12 @@ export function useMoveTask() {
       if (task) client.setQueryData<Task[]>(queryKeys.tasks, (current) =>
         current?.map((item) => (item.id === task.id ? task : item)),
       );
+      void client.invalidateQueries({ queryKey: queryKeys.projects });
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard });
+      void client.invalidateQueries({ queryKey: queryKeys.analytics });
+    },
+    onError: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.tasks });
     },
   });
 }
