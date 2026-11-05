@@ -30,7 +30,7 @@ export const timezones = [
   { value: "America/Los_Angeles", label: "(GMT-8) Los Angeles" },
 ];
 
-export const projectTypes = ["Design", "Marketing", "Mobile", "Web", "Data", "Produto", "Pesquisa"] as const;
+export const projectTypes = ["Design", "Marketing", "Mobile", "Web", "Data", "Produto", "Pesquisa", "Estudo"] as const;
 
 export const projectStatusOptions = [
   { value: "active", label: "Ativo" },
