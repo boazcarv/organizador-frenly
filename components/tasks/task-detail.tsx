@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { CalendarClock, CheckCircle2, MessageSquare, Paperclip, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PriorityChip } from "@/components/ui/chip";
@@ -81,21 +80,6 @@ export function TaskDetail({
               {task.comments}
             </span>
           </Detail>
-        </div>
-
-        <div className="mt-5">
-          <div className="flex items-center justify-between text-[11.5px]">
-            <span className="text-ink-soft">Progresso</span>
-            <span className="font-semibold tabular-nums text-ink">{task.progress}%</span>
-          </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
-            <motion.span
-              className="block h-full rounded-full bg-[var(--accent)]"
-              initial={{ width: 0 }}
-              animate={{ width: `${task.progress}%` }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
         </div>
 
         {member ? (
