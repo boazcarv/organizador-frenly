@@ -1,10 +1,10 @@
 "use client";
 
 import { ListChecks, Plus, SlidersHorizontal } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import { NewProjectDialog } from "@/components/dashboard/new-project-dialog";
-import { Progress } from "@/components/ui/progress";
 import { Board } from "@/components/tasks/board";
 import { TaskDetail } from "@/components/tasks/task-detail";
 import { Pressable } from "@/components/motion/pressable";
@@ -12,8 +12,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_TODAY } from "@/lib/constants";
-import { useMembers, useProfile, useProjects, useTasks } from "@/lib/queries";
-import type { Task, TaskStatus } from "@/lib/types";
+import { useMembers, useProfile, useProjects, useTasks, useUpdateProject } from "@/lib/queries";
+import type { Project, Task, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useBoardStore } from "@/store/board";
 
@@ -24,6 +24,81 @@ const scopes: { id: string; label: string; helper: string }[] = [
   { id: "client", label: "Cliente", helper: "Projetos com parceiros e clientes" },
   { id: "week", label: "Semana", helper: "Prazo nos próximos 7 dias" },
 ];
+
+function ProjectProgressCard({ project, onEdit }: { project: Project; onEdit: () => void }) {
+  const updateProject = useUpdateProject();
+  const [draftState, setDraftState] = useState({ id: project.id, base: project.progress, value: project.progress });
+  const lastSubmitted = useRef<number | null>(null);
+  const progress = draftState.id === project.id && draftState.base === project.progress
+    ? draftState.value
+    : project.progress;
+
+  const changeProgress = (value: number) => {
+    lastSubmitted.current = null;
+    setDraftState({ id: project.id, base: project.progress, value });
+  };
+
+  const saveProgress = (value: number) => {
+    if (value === project.progress || value === lastSubmitted.current || updateProject.isPending) return;
+    lastSubmitted.current = value;
+    updateProject.mutate(
+      { id: project.id, patch: { progress: value } },
+      {
+        onSuccess: () => toast.success("Progresso do projeto atualizado", { description: `${project.name}: ${value}%` }),
+        onError: (error) => {
+          lastSubmitted.current = null;
+          setDraftState({ id: project.id, base: project.progress, value: project.progress });
+          toast.error("Não foi possível salvar o progresso do projeto", {
+            description: error instanceof Error ? error.message : "Tente novamente.",
+          });
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="rounded-xl border border-line bg-surface-muted/60 p-3 transition-colors hover:bg-surface-muted">
+      <div className="flex items-center justify-between gap-2">
+        <button type="button" onClick={onEdit} className="min-w-0 truncate text-left text-sm font-semibold text-ink hover:text-accent">
+          {project.name}
+        </button>
+        <span className="shrink-0 text-xs tabular-nums text-ink-soft">{progress}%</span>
+      </div>
+      <div className="group/project-progress relative mt-1.5 flex h-7 w-full items-center" title="Arraste para ajustar o progresso do projeto">
+        <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden rounded-full bg-surface">
+          <span className="block h-full rounded-full bg-[var(--accent)] transition-[width] duration-150" style={{ width: `${progress}%` }} />
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={progress}
+          aria-label={`Progresso do projeto ${project.name}`}
+          aria-valuetext={`${progress}% concluído`}
+          onPointerDown={(event) => event.stopPropagation()}
+          onPointerMove={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          onChange={(event) => changeProgress(Number(event.currentTarget.value))}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            saveProgress(Number(event.currentTarget.value));
+          }}
+          onKeyUp={(event) => {
+            event.stopPropagation();
+            if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
+              saveProgress(Number(event.currentTarget.value));
+            }
+          }}
+          onBlur={() => saveProgress(progress)}
+          className="absolute inset-0 h-full w-full cursor-ew-resize appearance-none bg-transparent outline-none [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface-muted [&::-webkit-slider-thumb]:bg-[var(--accent)] [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface-muted [&::-moz-range-thumb]:bg-[var(--accent)] [&::-moz-range-thumb]:shadow-sm"
+        />
+      </div>
+      <span className="mt-0.5 block truncate text-xs text-ink-faint">{project.type} · {project.status === "active" ? "Ativo" : project.status}</span>
+    </div>
+  );
+}
 
 export default function TasksPage() {
   const { data: tasks, isPending: tasksPending } = useTasks();
@@ -130,11 +205,7 @@ export default function TasksPage() {
           </div>
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (
-              <button key={project.id} type="button" onClick={() => setEditingProject(project)} className="rounded-xl border border-line bg-surface-muted/60 p-3 text-left transition-colors hover:bg-surface-muted">
-                <span className="flex items-center justify-between gap-2"><span className="truncate text-sm font-semibold text-ink">{project.name}</span><span className="text-xs tabular-nums text-ink-soft">{project.progress}%</span></span>
-                <span className="mt-2 block"><Progress value={project.progress} className="h-1.5" /></span>
-                <span className="mt-2 block truncate text-xs text-ink-faint">{project.type} · {project.status === "active" ? "Ativo" : project.status}</span>
-              </button>
+              <ProjectProgressCard key={project.id} project={project} onEdit={() => setEditingProject(project)} />
             ))}
           </div>
         </section>

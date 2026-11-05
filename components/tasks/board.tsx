@@ -31,8 +31,8 @@ interface BoardProps {
 
 /**
  * Kanban board. Drag state lives in dnd-kit, order lives in Zustand: the card
- * lifts into a DragOverlay (scale 1.02, 1.5° rotation, deep shadow), the target
- * column highlights and neighbours re-accommodate with a spring.
+ * follows the pointer in a DragOverlay with a lifted shadow; the target column
+ * highlights and neighbouring cards re-accommodate smoothly.
  */
 export function Board({ projects, members, filter, onOpenTask, onAddTask }: BoardProps) {
   const columns = useBoardStore((state) => state.columns);
@@ -194,7 +194,7 @@ export function Board({ projects, members, filter, onOpenTask, onAddTask }: Boar
       <DragOverlay
         adjustScale={false}
         dropAnimation={{ duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }}
-        style={{ cursor: "grabbing" }}
+        style={{ cursor: "grabbing", pointerEvents: "none", zIndex: 60 }}
       >
         {activeTask ? (
           <TaskCard
